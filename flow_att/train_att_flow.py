@@ -1,8 +1,7 @@
 from tqdm.auto import tqdm
 from .setup_att_flow import *
 from .eval_att_flow import *
-from .plot_AR import *
-from .get_data import gaussian_smoothing_spike
+from utils import *
 
 def train_att_flow(n_epochs,
           train_loader, 

@@ -1,6 +1,6 @@
 from .setup_att_flow import *
 from .eval_att_flow import *
-from .plot_AR import *
+from utils import *
 from tqdm.auto import tqdm
 
 def train_att_flow(n_epochs,

@@ -190,7 +190,7 @@ for target in target_list:
                            data_likelihood_list = data_likelihood_list,
                            gen_likelihood_list = gen_likelihood_list)
         spike_length = data_spike[0].shape[0]
-        plot_betai_compare(betai_list, spike_sync_list, spike_length, time_resolution,
+        plot_betai_compare_rnn(betai_list, spike_sync_list, spike_length, time_resolution,
                        savepath, "test", q_temp, target)
         
         test_stats = {"test_stats":test_stats,"crps_list":crps_list,

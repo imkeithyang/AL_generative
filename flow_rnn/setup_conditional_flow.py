@@ -3,7 +3,7 @@ import torch.optim as optim
 
 from .rnn_encoder import *
 from .flows import *
-from .get_data import *
+from utils.get_data import *
 from torch import distributions as d
 #from transformer import *
 

@@ -1,8 +1,7 @@
 import torch
 import pyspike as spk
 import numpy as np
-from .get_data import split_window_per_neuron_flow
-from .get_data_AR import gaussian_smoothing_spike
+from utils.get_data import split_window_per_neuron_flow, gaussian_smoothing_spike
 
 def evaluate_spike_distance(data_spike, gen_spike_list, target_neuron, time_resolution):
     time_scale = 10**time_resolution

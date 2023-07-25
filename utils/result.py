@@ -302,7 +302,6 @@ def cross_correlation(path="/hpc/group/tarokhlab/hy190/data/AL/ALdata/070921_cle
 #                target, method=["rnnflow", "attflow"])
 
 
-cross_correlation()
 #for i, neuron in enumerate(neurons):
 #    data_concat[(1000*data_stimuli.iloc[run][neuron]).astype(int),i] = 1
 #    

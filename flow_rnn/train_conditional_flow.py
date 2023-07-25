@@ -1,8 +1,8 @@
 from tqdm.auto import tqdm
 from .setup_conditional_flow import *
 from .eval_conditional_flow import *
-from .plot_AR import *
-from .get_data_AR import gaussian_smoothing_spike
+from utils.plot import *
+from utils.get_data import gaussian_smoothing_spike
 
 def train_conditional_flow(n_epochs,
           train_loader, 
