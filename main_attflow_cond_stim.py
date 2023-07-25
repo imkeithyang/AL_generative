@@ -2,7 +2,8 @@ import yaml
 import torch
 import pickle
 import copy
-
+    
+import os
 from utils import *
 from flow_att_cond_stim import *
 
@@ -16,6 +17,19 @@ yaml_filepath = args.filename
 with open(yaml_filepath, 'r') as f:
     cfg = yaml.load(f, yaml.SafeLoader)
 
+# Different Attention/Flow Net structure from the unconditional attflow
+net_yamlfilepath = os.path.dirname(os.path.abspath(__file__))
+net_yamlfilepath = os.path.join(net_yamlfilepath, "config/sparse-attflow-net.yaml") if "sparse" in yaml_filepath else \
+    os.path.join(net_yamlfilepath, "config/attflow-net.yaml")
+    
+with open(net_yamlfilepath, 'r') as f:
+    cfg_net = yaml.load(f, yaml.SafeLoader)
+
+cfg["att_encoder"] = cfg_net["att_encoder"]    
+cfg["flow_net"] = cfg_net["flow_net"]
+cfg["data"]["batch_size"] = cfg_net["batch_size"]
+cfg["data"]["sigma"] = 0.01
+
 n_runs = cfg['n_runs']
 n_tries = cfg['n_tries']
 
@@ -23,7 +37,7 @@ n_tries = cfg['n_tries']
 if isinstance(cfg["data"]["target"], list):
     target_list = cfg["data"]["target"]
 else:
-    target_list = [0]
+    target_list = [cfg["data"]["target"]]
     
 for target in target_list:
     print("****************** Taining Target {} ******************".format(target))
@@ -46,7 +60,7 @@ for target in target_list:
         isi_distance_list = []
         spike_distance_list = []
         
-        smooth=False
+        smooth=True
         savepath, plot_savepath, net_savepath,exp = format_directory(cfg_temp, run)
         make_directory(exp, savepath, plot_savepath, net_savepath)
         initialized, test_loader, data_spike, data_smooth, q = setup_att_flow(cfg_temp, 
@@ -133,9 +147,9 @@ for target in target_list:
             crps_list.append(crps)
             
             time, betai = evaluate_betai(encoder_best, device, 
-                                        d_spike, d_smooth, stimuli, important_index,
+                                        d_spike, d_smooth, stimuli, important_index,sigma,
                                         window_size, target_neuron, 
-                                        time_resolution, filler, smooth=True)
+                                        time_resolution, filler, smooth=smooth)
             spike_sync_mat = evaluate_spikesync_unit_pairs(d_spike, target_neuron, time_resolution)
             betai_list.append(betai)
             time_list.append(time)

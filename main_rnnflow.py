@@ -12,7 +12,7 @@ if args.device is None:
 else: 
     device = torch.device(args.device)
     
-yaml_filepath = "AL_generative/config/rnnflow/rnnflow-8.yaml"#args.filename
+yaml_filepath = args.filename
 with open(yaml_filepath, 'r') as f:
     cfg = yaml.load(f, yaml.SafeLoader)
 

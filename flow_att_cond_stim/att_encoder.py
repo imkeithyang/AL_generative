@@ -91,7 +91,7 @@ class att_encoder(nn.Module):
             spatial_temporal_context = (alphai/alphai.mean(1).unsqueeze(1))*spatial_context
             spatial_temporal_out, spatial_temporal_hidden = self.rnn_net_att(spatial_temporal_context, None)
             spatial_temporal_embedding = spatial_temporal_out[:,-1,:].contiguous().view(-1, self.rnn_hidden)
-            spatial_temporal_embedding = self.final_act(self.final_dense(spatial_temporal_embedding))
+            spatial_temporal_embedding = self.final_dense(spatial_temporal_embedding)
 
             return spatial_temporal_embedding, hidden, betai
         

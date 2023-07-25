@@ -63,7 +63,7 @@ def gaussian_smoothing_spike(data_concat, time_resolution, sigma):
     return data_concat_smooth
 
 
-def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_index,
+def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_index,sigma,
                             window_size=3, target_neuron=0, time_resolution=3, filler=-1,
                             get_last_inf = False):
     time_scale = 10**time_resolution
@@ -80,7 +80,7 @@ def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_inde
         t = spike_time_unscaled[t_index]
         source_time_filter = data_concat[t-window_size:t,:]
         if data_concat_smooth is not None:
-            source_time_filter_smooth = data_concat_smooth[t-window_size:t,:]
+            source_time_filter_smooth = gaussian_smoothing_spike(data_concat[t-window_size:t,:], time_resolution, sigma)
             
         if t < window_size:
             source_time_filter = np.zeros((window_size,data_concat.shape[1]))
@@ -89,7 +89,7 @@ def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_inde
             if data_concat_smooth is not None:
                 source_time_filter_smooth = np.zeros((window_size,data_concat_smooth.shape[1]))
                 source_time_filter_smooth[0:window_size - t] = filler
-                source_time_filter_smooth[window_size - t:] = data_concat_smooth[0:t,:]
+                source_time_filter_smooth[window_size - t:] = gaussian_smoothing_spike(data_concat[0:t,:], time_resolution, sigma)
             
         source_time.append(np.array(source_time_filter[:,important_index]))
         if data_concat_smooth is not None:
@@ -121,7 +121,7 @@ def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_inde
         source_time_filter = data_concat[t-window_size:t,:]
         source_time.append(np.array(source_time_filter[:,important_index]))
         if data_concat_smooth is not None:
-            source_time_filter_smooth = data_concat_smooth[t-window_size:t,:]
+            source_time_filter_smooth = gaussian_smoothing_spike(data_concat[t-window_size:t,:], time_resolution, sigma)
             source_time_smooth.append(np.array(source_time_filter_smooth[:,important_index]))
     
 
@@ -198,7 +198,7 @@ def split_all_stimuli_flow(df, neurons, target,
             # split for target autoregressive
             extracted_data = split_window_per_neuron_flow(data_concat_has_spike, 
                                                           data_concat_smooth,
-                                                          important_index,
+                                                          important_index,sigma,
                                                           window_size, target, time_resolution, filler)
             ar_target_interarrival, ar_windowed_spike, ar_windowed_smooth, time_conditional  = extracted_data
             

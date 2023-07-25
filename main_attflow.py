@@ -12,7 +12,7 @@ if args.device is None:
 else: 
     device = torch.device(args.device)
 
-yaml_filepath = "AL_generative/config/attflow/attflow-8.yaml"#args.filename
+yaml_filepath = args.filename
 with open(yaml_filepath, 'r') as f:
     cfg = yaml.load(f, yaml.SafeLoader)
 
@@ -137,7 +137,7 @@ for target in target_list:
                 time, betai = evaluate_betai(encoder_best, device, 
                                             d_spike, d_smooth, stimuli, important_index,
                                             window_size, target_neuron, 
-                                            time_resolution, filler, smooth=True)
+                                            time_resolution, filler, smooth=smooth)
                 spike_sync_mat = evaluate_spikesync_unit_pairs(d_spike, target_neuron, time_resolution)
                 betai_list.append(betai)
                 time_list.append(time)

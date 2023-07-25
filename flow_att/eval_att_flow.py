@@ -105,8 +105,9 @@ def evaluate_crps(encoder, flow_net, linear_transform,
             
     conditional = torch.cat([rnn_out, time], -1) # NF condition on context, neuron, and stimuli    
     cond_repeat = torch.repeat_interleave(conditional, num_samples, 0)
-    samples = flow_net.sample(cond_inputs=cond_repeat).reshape(20,conditional.shape[0],int(num_samples//20))/scaling_factor
-    crps = calculate_CRPS(data_target, samples)
+    samples = flow_net.sample(cond_inputs=cond_repeat).reshape(conditional.shape[0],20,int(num_samples//20))/scaling_factor
+    transpose_samples = torch.transpose(samples,0,1)
+    crps = calculate_CRPS(data_target, transpose_samples)
     return crps
     
 def calculate_CRPS(observed_sample, generated_sample):

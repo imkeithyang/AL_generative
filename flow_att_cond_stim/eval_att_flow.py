@@ -48,10 +48,11 @@ def evaluate_spikesync_unit_pairs(data_spike, target_neuron, time_resolution):
         
     return spike_sync_mat
 
-def evaluate_betai(encoder, device, data_spike, data_smooth, stimuli, important_index,
+def evaluate_betai(encoder, device, data_spike, data_smooth, stimuli, 
+                   important_index, sigma,
                    window_size, target_neuron, 
                    time_resolution, filler, smooth=True):
-    data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,
+    data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,sigma,
                                         window_size, target_neuron, 
                                         time_resolution, filler,get_last_inf=True)
     
@@ -67,7 +68,7 @@ def evaluate_betai(encoder, device, data_spike, data_smooth, stimuli, important_
         data_input = data_smooth
     else:
         data_input = data_source
-    rnn_out, hidden, betai = encoder(data_input, stimuli_rep) # get latent representation
+    rnn_out, hidden, betai = encoder(data_input, stimuli_rep)
     
     return time, betai
 
@@ -85,7 +86,7 @@ def evaluate_crps(encoder, flow_net, linear_transform,
                   scaling_factor=1,
                   smooth=True,
                   num_samples=2000):
-    data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,
+    data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,sigma,
                                         window_size, target_neuron, 
                                         time_resolution, filler,get_last_inf=False)
     
@@ -105,8 +106,9 @@ def evaluate_crps(encoder, flow_net, linear_transform,
             
     conditional = torch.cat([rnn_out, stimuli_rep, time], -1) # NF condition on context, neuron, and stimuli
     cond_repeat = torch.repeat_interleave(conditional, num_samples, 0)
-    samples = flow_net.sample(cond_inputs=cond_repeat).reshape(20,conditional.shape[0],int(num_samples//20))/scaling_factor
-    crps = calculate_CRPS(data_target, samples)
+    samples = flow_net.sample(cond_inputs=cond_repeat).reshape(conditional.shape[0],20,int(num_samples//20))/scaling_factor
+    transpose_samples = torch.transpose(samples,0,1)
+    crps = calculate_CRPS(data_target, transpose_samples)
     return crps
     
 def calculate_CRPS(observed_sample, generated_sample):
@@ -131,7 +133,7 @@ def evaluate_likelihood_spike(encoder, flow_net, linear_transform,
                                 smooth=True):
     
     # True data likelihood
-    data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,
+    data = split_window_per_neuron_flow(data_spike, data_smooth, important_index, sigma,
                                         window_size, target_neuron, 
                                         time_resolution, filler,get_last_inf=False)
     
@@ -158,7 +160,7 @@ def evaluate_likelihood_spike(encoder, flow_net, linear_transform,
     # Generated Data Likelihood 
     for gen in gen_spike_list:
         gen_smooth = gaussian_smoothing_spike(gen, time_resolution, sigma)
-        data = split_window_per_neuron_flow(gen, gen_smooth, important_index,
+        data = split_window_per_neuron_flow(gen, gen_smooth, important_index,sigma,
                                         window_size, target_neuron, 
                                         time_resolution, filler,get_last_inf=False)
     

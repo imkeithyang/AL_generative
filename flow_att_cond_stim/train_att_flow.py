@@ -171,18 +171,23 @@ def generate_spike_train_att_flow(encoder, flow_net, linear_transform,
             # update spike
             spike_train[:,spike_time_index, target_neuron] = 1
             
-            if smooth:
-                data_input = torch.from_numpy(gaussian_smoothing_spike(spike_train.squeeze(0).detach().cpu().numpy(),
-                                                      time_resolution, sigma)).unsqueeze(0)
-            else:
-                data_input = spike_train
+            
                 
-            window_in = data_input[:,spike_time_index-window_size:spike_time_index,important_index]
+            window_in = spike_train[:,spike_time_index-window_size:spike_time_index,important_index]
+            if smooth:
+                window_in = torch.from_numpy(
+                    gaussian_smoothing_spike(window_in.squeeze(0).detach().cpu().numpy(),time_resolution, sigma)
+                    ).unsqueeze(0)
             if spike_time_index < window_size:
                 # update next window, dependent on current spike time
                 window_in = torch.zeros((1,window_size,n_neurons))
                 window_in[:,0:window_size - spike_time_index,:] = filler
-                window_in[:,window_size - spike_time_index:,:] = data_input[:,0:spike_time_index,important_index]
+                window_in[:,window_size - spike_time_index:,:] = spike_train[:,0:spike_time_index,important_index]
+                if smooth:
+                    window_in[:,window_size - spike_time_index:,:] = torch.from_numpy(
+                        gaussian_smoothing_spike(spike_train[:,0:spike_time_index,important_index].squeeze(0).detach().cpu().numpy(),time_resolution, sigma)
+                        ).unsqueeze(0)
+
         spike_train_list.append(spike_train.squeeze(0).detach().cpu().numpy())
     return spike_train_list
 
