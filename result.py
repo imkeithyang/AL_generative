@@ -53,7 +53,7 @@ def analyze_deepAR(yaml_filepath, verbose=True):
     return important_index_list
 
 
-def analyze_conditionalflow(yaml_filepath, verbose=True): 
+def analyze_noncond_stim(yaml_filepath, verbose=True): 
     with open(yaml_filepath, 'r') as f:
         cfg = yaml.load(f, yaml.SafeLoader)
         
@@ -73,7 +73,7 @@ def analyze_conditionalflow(yaml_filepath, verbose=True):
         crps_stack = []
         for run in range(n_runs):
             cfg_temp["data"]["target"] = target
-            savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run)
+            savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, stimuli=0)
             with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:
                 test_stats_run = pickle.load(f)
                 
@@ -125,71 +125,64 @@ def analyze_conditionalflow(yaml_filepath, verbose=True):
     fla_spike_stack = spike_stack.reshape(spike_stack.shape[0]*spike_stack.shape[1],-1)
     return fla_crps_stack, fla_isi_stack, fla_spike_stack
     
-def analyze_attentionflow(yaml_filepath, verbose=True): 
+def analyze_cond_stim(yaml_filepath, target, verbose=True): 
     with open(yaml_filepath, 'r') as f:
         cfg = yaml.load(f, yaml.SafeLoader)
+    cfg_temp = copy.deepcopy(cfg)
+    cfg_temp["data"]["target"] = target
+    n_runs = cfg_temp["n_runs"]
+    
+    count_reject = np.array([])
+    isi_stack = []
+    spike_stack = []
+    crps_stack = []
+    for run in range(n_runs):
+        savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run)
+        with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:
+            test_stats_run = pickle.load(f)
         
-    if isinstance(cfg["data"]["target"], list):
-        target_list = cfg["data"]["target"]
-    else:
-        target_list = [cfg["data"]["target"]]
+        data_likelihood_list = test_stats_run["data_likelihood_list"]
+        gen_likelihood_list = test_stats_run["gen_likelihood_list"]
+        crps_list = test_stats_run["crps_list"]
+        isi_distance_list = test_stats_run["isi_distance_list"]
+        spike_distance_list = test_stats_run["spike_distance_list"]
 
-    n_runs = cfg["n_runs"]
-    count_all_target_reject = []
-    for target in target_list:
-        cfg_temp = copy.deepcopy(cfg)
-        count_reject = np.array([])
-        isi_stack = []
-        spike_stack = []
-        crps_stack = []
-        for run in range(n_runs):
-            cfg_temp["data"]["target"] = target
-            savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run)
-            with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:
-                test_stats_run = pickle.load(f)
+        crps_stack.append(np.array(crps_list).T)
+        isi_stack.append(np.array(isi_distance_list).T)
+        spike_stack.append(np.array(spike_distance_list).T)
             
-            data_likelihood_list = test_stats_run["data_likelihood_list"]
-            gen_likelihood_list = test_stats_run["gen_likelihood_list"]
-            crps_list = test_stats_run["crps_list"]
-            isi_distance_list = test_stats_run["isi_distance_list"]
-            spike_distance_list = test_stats_run["spike_distance_list"]
-
-            crps_stack.append(np.array(crps_list).T)
-            isi_stack.append(np.array(isi_distance_list).T)
-            spike_stack.append(np.array(spike_distance_list).T)
-                
-            # Dealing with 0 variance likelihood 
-            likelihood_lower = np.array(data_likelihood_list) < np.quantile(gen_likelihood_list, 0.025, axis=1)
-            likelihood_higher = np.array(data_likelihood_list) > np.quantile(gen_likelihood_list, 0.975, axis=1)
-            likelihood_outside_range = likelihood_lower+likelihood_higher
-            zero_var_index = np.where(np.array(gen_likelihood_list).var(1) == 0)
-            zero_var_likelihood_check = (np.array(data_likelihood_list)[zero_var_index] != \
-                np.array(gen_likelihood_list)[:,0][zero_var_index])
-            zero_var_outside_range = zero_var_index[0][zero_var_likelihood_check]
-            likelihood_outside_range[zero_var_outside_range] = 1    
+        # Dealing with 0 variance likelihood 
+        likelihood_lower = np.array(data_likelihood_list) < np.quantile(gen_likelihood_list, 0.025, axis=1)
+        likelihood_higher = np.array(data_likelihood_list) > np.quantile(gen_likelihood_list, 0.975, axis=1)
+        likelihood_outside_range = likelihood_lower+likelihood_higher
+        zero_var_index = np.where(np.array(gen_likelihood_list).var(1) == 0)
+        zero_var_likelihood_check = (np.array(data_likelihood_list)[zero_var_index] != \
+            np.array(gen_likelihood_list)[:,0][zero_var_index])
+        zero_var_outside_range = zero_var_index[0][zero_var_likelihood_check]
+        likelihood_outside_range[zero_var_outside_range] = 1    
+        
+        count_reject = np.vstack([count_reject, likelihood_outside_range]) \
+            if count_reject.size else likelihood_outside_range
             
-            count_reject = np.vstack([count_reject, likelihood_outside_range]) \
-                if count_reject.size else likelihood_outside_range
-                
-        count_reject_all_run = count_reject.sum(0)
-        mean_isi_stack = np.mean(isi_stack, 0)
-        mean_spike_stack = np.mean(spike_stack, 0)
-        mean_crps_stack = np.mean(crps_stack, 0)
-        crps_stack = np.array(crps_stack)
-        isi_stack = np.array(isi_stack)
-        spike_stack = np.array(spike_stack)
-        if verbose:
-            print("Neuron {} No. Rejected Emp-Likelihood by stimuli: {}, Reject rate: {}".format(target,
-                                                                    count_reject_all_run.astype(int),
-                                                                    np.round(np.mean(count_reject_all_run)/n_runs,2)))
-            print("Neuron {} CRPS by stimuli: {}".format(target,
-                                                        np.round(np.mean(mean_crps_stack,0),2)))
-            print("Neuron {} ISI Distance by stimuli: {}".format(target,
-                                                                np.round(np.mean(mean_isi_stack,0),2)))
-            print("Neuron {} SPIKE Distance by stimuli: {}".format(target,
-                                                                np.round(np.mean(mean_spike_stack,0),2)))
-            count_all_target_reject.append(count_reject_all_run)
-            print("Overall Rejection Rate: {}".format(np.mean(count_all_target_reject)/n_runs))
+    count_reject_all_run = count_reject.sum(0)
+    mean_isi_stack = np.mean(isi_stack, 0)
+    mean_spike_stack = np.mean(spike_stack, 0)
+    mean_crps_stack = np.mean(crps_stack, 0)
+    crps_stack = np.array(crps_stack)
+    isi_stack = np.array(isi_stack)
+    spike_stack = np.array(spike_stack)
+    if verbose:
+        print("Neuron {} No. Rejected Emp-Likelihood by stimuli: {}, Reject rate: {}".format(target,
+                                                                count_reject_all_run.astype(int),
+                                                                np.round(np.mean(count_reject_all_run)/n_runs,2)))
+        print("Neuron {} CRPS by stimuli: {}".format(target,
+                                                    np.round(np.mean(mean_crps_stack,0),2)))
+        print("Neuron {} ISI Distance by stimuli: {}".format(target,
+                                                            np.round(np.mean(mean_isi_stack,0),2)))
+        print("Neuron {} SPIKE Distance by stimuli: {}".format(target,
+                                                            np.round(np.mean(mean_spike_stack,0),2)))
+        count_all_target_reject.append(count_reject_all_run)
+        print("Overall Rejection Rate: {}".format(np.mean(count_all_target_reject)/n_runs))
         
     fla_crps_stack = crps_stack.reshape(crps_stack.shape[0]*crps_stack.shape[1],-1)
     fla_isi_stack = isi_stack.reshape(isi_stack.shape[0]*isi_stack.shape[1],-1)

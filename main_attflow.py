@@ -46,7 +46,7 @@ for target in target_list:
         isi_distance_list = []
         spike_distance_list = []
         
-        for stimuli_index in range(3,23):
+        for stimuli_index in range(0,23):
             smooth=False
             savepath, plot_savepath, net_savepath,exp = format_directory(cfg_temp, run, stimuli_index)
             make_directory(exp, savepath, plot_savepath, net_savepath)

@@ -50,7 +50,7 @@ for target in target_list:
         spike_distance_list = []
         spike_sync_list = []
         
-        for stimuli_index in range(3,23):
+        for stimuli_index in range(0,23):
             important_index = None
             # check if we have done previous preprocessing or not
             savepath, plot_savepath, net_savepath, exp = format_directory(cfg_deepAR, None, stimuli_index)

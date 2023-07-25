@@ -61,7 +61,10 @@ def format_directory(cfg, run, stimuli=None):
             exp += "/attflow/attflow-{}".format(target)
     else:
         exp += "/vaeflow"
-        
+    
+    if stimuli is None:
+        exp += "-cond_stim"
+    
     savepath = os.path.join(exp, "run_{}".format(run))
     plot_savepath = os.path.join(savepath, "by_stimuli/s_{}/plot".format(stimuli)) if stimuli is not None \
         else os.path.join(savepath, "plot")
