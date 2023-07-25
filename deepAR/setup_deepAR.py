@@ -3,7 +3,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from .deepAR import *
-from .get_data_AR import *
+from utils.get_data_AR import *
 
 
 def setup_deepAR(cfg, device, run, stimuli_index):

@@ -179,7 +179,7 @@ def split_all_stimuli_flow(df, neurons, target,
     
 
     for s_index, s in enumerate(all_stimuli_count):
-        if s_index not in set([stimuli_index]):
+        if s_index not in set(list(stimuli_index) if isinstance(stimuli_index, range) else [stimuli_index]):
             continue
         for run in range(all_stimuli_count[s]):
             if val_run < 0:
@@ -285,7 +285,7 @@ def load_data_flow(path,
     pre_stim = ("pre_stimuli" in path)
     data_moth, neurons = read_moth(path, time_resolution)
     if stimuli_index is None:
-        stimuli_index = list(range(0,23))
+        stimuli_index = range(0,23)
     extracted = split_all_stimuli_flow(data_moth, 
                                        neurons, 
                                        target,
