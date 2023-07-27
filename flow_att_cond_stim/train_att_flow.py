@@ -154,7 +154,7 @@ def generate_spike_train_att_flow(encoder, flow_net, linear_transform,
         hidden=None
         window_in = torch.ones(1, window_size, n_neurons, device=device)*filler
         spike_time = torch.tensor([[0.]]).to(device)
-        while spike_time <=1:
+        while spike_time <=1.2:
             # generate interarrival time
             window_in = window_in.to(device)
             rnn_out, hidden,_ = encoder(window_in.float(), q, None)
@@ -166,7 +166,7 @@ def generate_spike_train_att_flow(encoder, flow_net, linear_transform,
             
             spike_time += interarrival_sample
             spike_time_index = int(spike_time*time_scale)
-            if spike_time > 1 or spike_time_index >= spike_train.shape[1]:
+            if spike_time_index >= spike_train.shape[1]:
                 break
             # update spike
             spike_train[:,spike_time_index, target_neuron] = 1

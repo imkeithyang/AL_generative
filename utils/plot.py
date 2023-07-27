@@ -16,9 +16,9 @@ def plot_spike_compare(data_concat_true, data_concat_gen, important_neurons,
                        plot_savepath, epoch, q, target, 
                        data_likelihood_list = None, gen_likelihood_list=None):
     fig, ax = plt.subplots(figsize=(10*2,1.5*len(q)), nrows=len(q), ncols=2 if data_likelihood_list is None else 3)
-    stim_name = ['1-P9_TenThous', '0-M4', '0-Bol', '0-Ctl', '0-DatExt', '0-Far', '0-Ger', '0-Iso', 
-               '0-Lin', '0-M2', '0-M3', '0-M5', '1-P9_Ten', '0-M6', 
-               '0-Mal', '0-Myr', '0-Ner', '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '0-Bea']
+    stim_name = ['0-Bea', '0-Bol', '0-Ctl', '0-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
+                 '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-Mal', '0-Myr', '0-Ner', 
+                 '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous']
     if len(q) > 1:
         for i, stimuli in enumerate(q):
             sti = np.where(stimuli == 1)[1][0]
@@ -60,6 +60,10 @@ def plot_spike_compare(data_concat_true, data_concat_gen, important_neurons,
     
 def plot_betai_compare(time_list, betai_list, spike_sync_list, spike_length,time_resolution,
                        plot_savepath, epoch, q, target):
+    stim_name = ['0-Bea', '0-Bol', '0-Ctl', '0-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
+                 '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-Mal', '0-Myr', '0-Ner', 
+                 '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous']
+    
     time_scale = 10**time_resolution
     fig, ax = plt.subplots(figsize=(14,3*len(q)), nrows=len(q), ncols=2)
     if len(q) > 1:
@@ -74,11 +78,37 @@ def plot_betai_compare(time_list, betai_list, spike_sync_list, spike_length,time
                 
             ax[i][0].imshow(betai_matrix, aspect='auto')
             ax[i][0].set_yticks(list(range(betai_list[i].shape[1])))
-            ax[i][0].set_title("Stimuli {} Neuron {} Beta Importance".format(sti, target), loc="left")
+            ax[i][0].set_title("Stimuli {} Neuron {} Beta Importance".format(stim_name[i], target), loc="left")
             
             ax[i][1].imshow(spike_sync_list[i], aspect='auto')
             ax[i][1].set_yticks(list(range(betai_list[i].shape[1])))
-            ax[i][1].set_title("Stimuli {} Neuron {} SPIKE Sync".format(sti, target), loc="left")
+            ax[i][1].set_title("Stimuli {} Neuron {} SPIKE Sync".format(stim_name[i], target), loc="left")
+            
+    plt.tight_layout()
+    plt.savefig("{}/betai-{}-all-stimuli.png".format(plot_savepath, epoch))
+    plt.close()
+    
+    
+def plot_betai_compare_rnn(betai_list, spike_sync_list, spike_length, time_resolution,
+                       plot_savepath, epoch, q, target):
+    stim_name = ['0-Bea', '0-Bol', '0-Ctl', '0-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
+                 '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-Mal', '0-Myr', '0-Ner', 
+                 '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous']
+    time_scale = 10**time_resolution
+    fig, ax = plt.subplots(figsize=(14,3*len(q)), nrows=len(q), ncols=2)
+    if len(q) > 1:
+        for i, stimuli in enumerate(q):
+            sti = np.where(stimuli == 1)[1][0]
+            betai_matrix = np.zeros((betai_list[i].shape[0],spike_length))
+            betai_matrix[:,:] = np.expand_dims(betai_list[i],1)
+                
+            ax[i][0].imshow(betai_matrix, aspect='auto')
+            ax[i][0].set_yticks(list(range(betai_list[i].shape[0])))
+            ax[i][0].set_title("Stimuli {} Neuron {} Beta Importance".format(stim_name[i], target), loc="left")
+            
+            ax[i][1].imshow(spike_sync_list[i], aspect='auto')
+            ax[i][1].set_yticks(list(range(betai_list[i].shape[0])))
+            ax[i][1].set_title("Stimuli {} Neuron {} SPIKE Sync".format(stim_name[i], target), loc="left")
             
     plt.tight_layout()
     plt.savefig("{}/betai-{}-all-stimuli.png".format(plot_savepath, epoch))

@@ -48,10 +48,11 @@ def evaluate_spikesync_unit_pairs(data_spike, target_neuron, time_resolution):
         
     return spike_sync_mat
 
-def evaluate_betai(encoder, device, data_spike, data_smooth, stimuli, important_index,
+def evaluate_betai(encoder, device, data_spike, data_smooth, stimuli, 
+                   important_index, sigma,
                    window_size, target_neuron, 
                    time_resolution, filler, smooth=True):
-    data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,
+    data = split_window_per_neuron_flow(data_spike, data_smooth, important_index, sigma,
                                         window_size, target_neuron, 
                                         time_resolution, filler,get_last_inf=True)
     
@@ -85,7 +86,7 @@ def evaluate_crps(encoder, flow_net, linear_transform,
                   scaling_factor=1,
                   smooth=True,
                   num_samples=2000):
-    data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,
+    data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,sigma,
                                         window_size, target_neuron, 
                                         time_resolution, filler,get_last_inf=False)
     
@@ -132,7 +133,7 @@ def evaluate_likelihood_spike(encoder, flow_net, linear_transform,
                                 smooth=True):
     
     # True data likelihood
-    data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,
+    data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,sigma,
                                         window_size, target_neuron, 
                                         time_resolution, filler,get_last_inf=False)
     
@@ -158,7 +159,7 @@ def evaluate_likelihood_spike(encoder, flow_net, linear_transform,
     # Generated Data Likelihood 
     for gen in gen_spike_list:
         gen_smooth = gaussian_smoothing_spike(gen, time_resolution, sigma)
-        data = split_window_per_neuron_flow(gen, gen_smooth, important_index,
+        data = split_window_per_neuron_flow(gen, gen_smooth, important_index,sigma,
                                         window_size, target_neuron, 
                                         time_resolution, filler,get_last_inf=False)
     

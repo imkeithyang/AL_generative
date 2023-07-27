@@ -53,7 +53,7 @@ def analyze_deepAR(yaml_filepath, verbose=True):
     return important_index_list
 
 
-def analyze_noncond_stim(yaml_filepath, verbose=True): 
+def analyze_result(yaml_filepath, verbose=True, cond=False): 
     with open(yaml_filepath, 'r') as f:
         cfg = yaml.load(f, yaml.SafeLoader)
         
@@ -73,7 +73,10 @@ def analyze_noncond_stim(yaml_filepath, verbose=True):
         crps_stack = []
         for run in range(n_runs):
             cfg_temp["data"]["target"] = target
-            savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, stimuli=0)
+            if cond:
+                savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run)
+            else:
+                savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, stimuli=0)
             with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:
                 test_stats_run = pickle.load(f)
                 
@@ -124,71 +127,6 @@ def analyze_noncond_stim(yaml_filepath, verbose=True):
     fla_isi_stack = isi_stack.reshape(isi_stack.shape[0]*isi_stack.shape[1],-1)
     fla_spike_stack = spike_stack.reshape(spike_stack.shape[0]*spike_stack.shape[1],-1)
     return fla_crps_stack, fla_isi_stack, fla_spike_stack
-    
-def analyze_cond_stim(yaml_filepath, target, verbose=True): 
-    with open(yaml_filepath, 'r') as f:
-        cfg = yaml.load(f, yaml.SafeLoader)
-    cfg_temp = copy.deepcopy(cfg)
-    cfg_temp["data"]["target"] = target
-    n_runs = cfg_temp["n_runs"]
-    
-    count_reject = np.array([])
-    isi_stack = []
-    spike_stack = []
-    crps_stack = []
-    for run in range(n_runs):
-        savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run)
-        with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:
-            test_stats_run = pickle.load(f)
-        
-        data_likelihood_list = test_stats_run["data_likelihood_list"]
-        gen_likelihood_list = test_stats_run["gen_likelihood_list"]
-        crps_list = test_stats_run["crps_list"]
-        isi_distance_list = test_stats_run["isi_distance_list"]
-        spike_distance_list = test_stats_run["spike_distance_list"]
-
-        crps_stack.append(np.array(crps_list).T)
-        isi_stack.append(np.array(isi_distance_list).T)
-        spike_stack.append(np.array(spike_distance_list).T)
-            
-        # Dealing with 0 variance likelihood 
-        likelihood_lower = np.array(data_likelihood_list) < np.quantile(gen_likelihood_list, 0.025, axis=1)
-        likelihood_higher = np.array(data_likelihood_list) > np.quantile(gen_likelihood_list, 0.975, axis=1)
-        likelihood_outside_range = likelihood_lower+likelihood_higher
-        zero_var_index = np.where(np.array(gen_likelihood_list).var(1) == 0)
-        zero_var_likelihood_check = (np.array(data_likelihood_list)[zero_var_index] != \
-            np.array(gen_likelihood_list)[:,0][zero_var_index])
-        zero_var_outside_range = zero_var_index[0][zero_var_likelihood_check]
-        likelihood_outside_range[zero_var_outside_range] = 1    
-        
-        count_reject = np.vstack([count_reject, likelihood_outside_range]) \
-            if count_reject.size else likelihood_outside_range
-            
-    count_reject_all_run = count_reject.sum(0)
-    mean_isi_stack = np.mean(isi_stack, 0)
-    mean_spike_stack = np.mean(spike_stack, 0)
-    mean_crps_stack = np.mean(crps_stack, 0)
-    crps_stack = np.array(crps_stack)
-    isi_stack = np.array(isi_stack)
-    spike_stack = np.array(spike_stack)
-    if verbose:
-        print("Neuron {} No. Rejected Emp-Likelihood by stimuli: {}, Reject rate: {}".format(target,
-                                                                count_reject_all_run.astype(int),
-                                                                np.round(np.mean(count_reject_all_run)/n_runs,2)))
-        print("Neuron {} CRPS by stimuli: {}".format(target,
-                                                    np.round(np.mean(mean_crps_stack,0),2)))
-        print("Neuron {} ISI Distance by stimuli: {}".format(target,
-                                                            np.round(np.mean(mean_isi_stack,0),2)))
-        print("Neuron {} SPIKE Distance by stimuli: {}".format(target,
-                                                            np.round(np.mean(mean_spike_stack,0),2)))
-        count_all_target_reject.append(count_reject_all_run)
-        print("Overall Rejection Rate: {}".format(np.mean(count_all_target_reject)/n_runs))
-        
-    fla_crps_stack = crps_stack.reshape(crps_stack.shape[0]*crps_stack.shape[1],-1)
-    fla_isi_stack = isi_stack.reshape(isi_stack.shape[0]*isi_stack.shape[1],-1)
-    fla_spike_stack = spike_stack.reshape(spike_stack.shape[0]*spike_stack.shape[1],-1)
-    return fla_crps_stack, fla_isi_stack, fla_spike_stack
-
 
 
 def plot_result_bar(crps_all,
@@ -202,7 +140,6 @@ def plot_result_bar(crps_all,
     crps_dict = {"CRPS": np.concatenate([np.array(crps_all[i]).flatten() for i in range(len(crps_all))]),
                  "Stimuli": stimuli_list,
                  "Method": method_list}
-    
     method_list = []
     for met in method:
         method_list += [met]*len(np.array(isi_all[0]).flatten())
@@ -210,7 +147,6 @@ def plot_result_bar(crps_all,
     isi_dict = {"ISI Distance": np.concatenate([np.array(isi_all[i]).flatten() for i in range(len(isi_all))]),
                  "Stimuli": stimuli_list,
                  "Method": method_list}
-    
     method_list = []
     for met in method:
         method_list += [met]*len(np.array(spike_all[0]).flatten())
@@ -229,101 +165,75 @@ def plot_result_bar(crps_all,
     
     fig.suptitle("Neuron {} Goodness of Fit".format(target))
     
+def analyze_betai(yaml_filepath, cond=False):
+    with open(yaml_filepath, 'r') as f:
+        cfg = yaml.load(f, yaml.SafeLoader)
+        
+    cfg_temp = copy.deepcopy(cfg)
+    cfg_temp["data"]["target"] = cfg_temp["data"]["target"][0]
+    n_runs = cfg_temp["n_runs"]
+    time_scale = 10**cfg_temp["data"]["time_resolution"]
     
-def cross_correlation(path="/hpc/group/tarokhlab/hy190/data/AL/ALdata/070921_cleaned.csv"):
+    betai_matrix_stack = []
+    ensemble_stack = []
+    pre_stim_ensemble_stack = []
+    stim_ensemble_stack = []
+    post_stim_ensemble_stack = []
+    for run in range(n_runs):
+        if cond:
+            savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run)
+        else:
+            savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, 0)
+            
+        with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:
+            test_stats_run = pickle.load(f)
+        
+        q = ['1-P9_TenThous', '0-M4', '0-Bol', '0-Ctl', '0-DatExt', '0-Far', '0-Ger', '0-Iso', 
+               '0-Lin', '0-M2', '0-M3', '0-M5', '1-P9_Ten', '0-M6', 
+               '0-Mal', '0-Myr', '0-Ner', '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '0-Bea']
+        
+        betai_list = test_stats_run["betai_list"]
+        time_list = test_stats_run["time_list"]
+        spike_length = test_stats_run["data_emp"][0].shape[0]
+        betai_matrix_list, pre_stim_ensemble_list, stim_ensemble_list, post_stim_ensemble_list =\
+            build_beta_matrix(q, betai_list, time_list, time_scale, spike_length)
+        betai_matrix_stack.append(betai_matrix_list)
+        pre_stim_ensemble_stack.append(pre_stim_ensemble_list)
+        stim_ensemble_stack.append(stim_ensemble_list)
+        post_stim_ensemble_stack.append(post_stim_ensemble_list)
 
-    df = pd.read_csv(path, index_col=0)
-    neurons = list(df.keys())[2:]
-    for i in range(df.shape[0]):
-        for j in neurons:
-            df.at[i,j] = np.round(json.loads(df.iloc[i][j]), 3)
+    return betai_matrix_stack, pre_stim_ensemble_stack, stim_ensemble_stack, post_stim_ensemble_stack
 
-    all_stimuli_count = df.value_counts("stimuli").to_dict()
-    num_stimuli = len(all_stimuli_count)
-    bins = np.arange(0,1,0.005)
-    SI_index_by_stimuli = []
-    mean_SI_index_by_stimuli = []
-    for s_index, s in enumerate(all_stimuli_count):
-        SI_index_list = []
-        for run in range(all_stimuli_count[s]):
-            # SE Raw
-            se_raw = np.zeros((len(neurons), len(neurons)))
-            se_shuffle = np.zeros((len(neurons), len(neurons)))
-            N1_plus_N2 = np.zeros((len(neurons), len(neurons)))
-            data_stimuli = df[df["stimuli"] == s]
-            data_concat = np.zeros((1000,len(neurons)))
-            for j, neuron_1 in enumerate(neurons):
-                neuron_tar = data_stimuli.iloc[run][neuron_1]
-                neuron_tar_low = neuron_tar - 0.01
-                neuron_tar_high = neuron_tar + 0.01
-                
-                neuron_tar_low = neuron_tar_low.reshape(1,-1)
-                neuron_tar_high = neuron_tar_high.reshape(1,-1)
-                for k, neuron_2 in enumerate(neurons):
-                    # SE Raw
-                    neuron_ref = data_stimuli.iloc[run][neuron_1]
-                    neuron_ref = neuron_ref.reshape(-1,1)
-                    low_leq = np.less_equal(neuron_tar_low, neuron_ref)
-                    high_geq = np.greater_equal(neuron_tar_high, neuron_ref)
-                    
-                    within_range = low_leq*high_geq
-                    se_raw[j,k] = within_range.sum()
-            #        # N1 + N2
-            #        N1_plus_N2[j,k] = neuron_tar.sum() + neuron_ref.sum()
-            #        # SE Shuffle
-            #        for shift_predictor_run in range(all_stimuli_count[s]):
-            #            if shift_predictor_run == run:
-            #                continue
-            #            data_concat_shuffle = np.zeros((1000,len(neurons)))
-            #            for i, neuron in enumerate(neurons):
-            #                data_concat_shuffle[(1000*data_stimuli.iloc[shift_predictor_run][neuron]).astype(int),i] = 1
-            #                
-            #            neuron_ref_shuffle = data_concat_shuffle[:,k]
-            #            cross_corr_shuffle = correlate(neuron_ref_shuffle, neuron_tar)
-            #            cross_cor_lags = correlation_lags(len(neuron_ref_shuffle), len(neuron_tar))
-            #            se_shuffle[j,k] += cross_corr_shuffle[np.where((cross_cor_lags <= 5) & (cross_cor_lags >= -5))].sum()
-                                
-            se_shuffle = se_shuffle/(all_stimuli_count[s] - 1)
-            SI_index = (se_raw - se_shuffle)/N1_plus_N2
-            SI_index_list.append(SI_index) 
-        mean_SI_index_by_stimuli.append(np.mean(SI_index_list, 0))
-        SI_index_by_stimuli.append(SI_index_list)
-
-
-#target = 0
-#rnn_crps_stack, rnn_isi_stack, rnn_spike_stack = analyze_conditionalflow("config/rnnflow/rnnflow-{}.yaml".format(target), 
-#                                                                         verbose=False)
-#att_crps_stack, att_isi_stack, att_spike_stack = analyze_attentionflow(yaml_filepath="config/attflow.yaml", 
-#                                                                       target=target, 
-#                                                                       verbose=False)
-#plot_result_bar([rnn_crps_stack, att_crps_stack],
-#                [rnn_isi_stack, att_isi_stack],
-#                [rnn_spike_stack, att_spike_stack],
-#                target, method=["rnnflow", "attflow"])
-
-
-#for i, neuron in enumerate(neurons):
-#    data_concat[(1000*data_stimuli.iloc[run][neuron]).astype(int),i] = 1
-#    
-#for j, neuron in enumerate(neurons):
-#    neuron_tar = data_concat[:,j]
-#    for k, neuron in enumerate(neurons):
-#        # SE Raw
-#        neuron_ref = data_concat[:,k]
-#        cross_corr = correlate(neuron_ref, neuron_tar)
-#        cross_cor_lags = correlation_lags(len(neuron_ref), len(neuron_tar))
-#        se_raw[j,k] = cross_corr[np.where((cross_cor_lags <= 5) & (cross_cor_lags >= -5))].sum()
-#        # N1 + N2
-#        N1_plus_N2[j,k] = neuron_tar.sum() + neuron_ref.sum()
-#        # SE Shuffle
-#        for shift_predictor_run in range(all_stimuli_count[s]):
-#            if shift_predictor_run == run:
-#                continue
-#            data_concat_shuffle = np.zeros((1000,len(neurons)))
-#            for i, neuron in enumerate(neurons):
-#                data_concat_shuffle[(1000*data_stimuli.iloc[shift_predictor_run][neuron]).astype(int),i] = 1
-#                
-#            neuron_ref_shuffle = data_concat_shuffle[:,k]
-#            cross_corr_shuffle = correlate(neuron_ref_shuffle, neuron_tar)
-#            cross_cor_lags = correlation_lags(len(neuron_ref_shuffle), len(neuron_tar))
-#            se_shuffle[j,k] += cross_corr_shuffle[np.where((cross_cor_lags <= 5) & (cross_cor_lags >= -5))].sum()
+def build_beta_matrix(q, betai_list, time_list, time_scale, spike_length):
+    betai_matrix_list = []
+    ensemble_list = []
+    pre_stim_ensemble_list = []
+    stim_ensemble_list = []
+    post_stim_ensemble_list = []
+    for i, stimuli in enumerate(q):
+        betai_matrix = np.zeros((betai_list[i].shape[1],spike_length))
+        t_start = 0
+        for j,t in enumerate(time_list[i][1:]):
+            t_end = int(t*time_scale)
+            betai_matrix[:,t_start:t_end] = betai_list[i][j].detach().cpu().numpy()
+            t_start = t_end
+        betai_matrix_list.append(betai_matrix)
+        pre_stim_ensemble_list.append(betai_matrix[:,0:400].mean(1))
+        stim_ensemble_list.append(betai_matrix[:,400:800].mean(1))
+        post_stim_ensemble_list.append(betai_matrix[:,800:].mean(1))
+        
+    return betai_matrix_list, pre_stim_ensemble_list, stim_ensemble_list, post_stim_ensemble_list
+            
+            
+def plot_ensemble(ensemble_list, method_list, target, q_labels, section="During"):
+    fig, axes = plt.subplots(ncols=len(ensemble_list), nrows=1, figsize=(3*len(ensemble_list), 5))
+    for i, ensemble in enumerate(ensemble_list):
+        axes[i].imshow(np.array(ensemble_list[i]).mean(0), aspect='auto')
+        if i == 0:
+            axes[i].set_yticks(list(range(len(q_labels))))
+            axes[i].set_yticklabels(q_labels)
+        else:
+            axes[i].set_yticklabels([])
+        axes[i].set_title(method_list[i])
+    plt.suptitle("{} Stimulus Neuron {} Spatio Attention".format(section, target))
+    plt.tight_layout()

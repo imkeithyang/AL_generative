@@ -47,7 +47,7 @@ for target in target_list:
         spike_distance_list = []
         
         for stimuli_index in range(0,23):
-            smooth=False
+            smooth=True
             savepath, plot_savepath, net_savepath,exp = format_directory(cfg_temp, run, stimuli_index)
             make_directory(exp, savepath, plot_savepath, net_savepath)
             initialized, test_loader, data_spike, data_smooth, q = setup_att_flow(cfg_temp, 
@@ -135,7 +135,8 @@ for target in target_list:
                 crps_list.append(crps)
                 
                 time, betai = evaluate_betai(encoder_best, device, 
-                                            d_spike, d_smooth, stimuli, important_index,
+                                            d_spike, d_smooth, stimuli, 
+                                            important_index,sigma,
                                             window_size, target_neuron, 
                                             time_resolution, filler, smooth=smooth)
                 spike_sync_mat = evaluate_spikesync_unit_pairs(d_spike, target_neuron, time_resolution)

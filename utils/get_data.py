@@ -39,7 +39,7 @@ def make_spiketrain(df, stimuli, run, neurons, time_resolution, min_spike = 0, p
     """
     
     time_scale = 10**time_resolution
-    tot_timestep = time_scale if pre_stim is False else int(time_scale*1.1)
+    tot_timestep = int(time_scale*1.2)
     data_concat = np.zeros((tot_timestep,len(neurons)))
     data_stimuli = df[df["label_stim"] == stimuli]
     for j, neuron in enumerate(neurons):
@@ -132,7 +132,7 @@ def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_inde
         if get_last_inf:
             time_cond_temp = np.zeros((len(time_conditional)+1,))
             time_cond_temp[0:-1] = time_conditional
-            time_cond_temp[-1] = 0.999
+            time_cond_temp[-1] = (len(data_concat)-1)/time_scale
             time_conditional = time_cond_temp
     else:
         time_conditional = np.array([0])
@@ -144,6 +144,7 @@ def split_all_stimuli_flow(df, neurons, target,
     df[["label", "stimuli"]].drop_duplicates()
     df["label_stim"] = df["label"].astype(str) + "-" + df["stimuli"]
     all_stimuli_count = df.value_counts("label_stim").to_dict()
+    all_stimuli_count = dict(sorted(all_stimuli_count.items()))
     num_stimuli = len(all_stimuli_count)
     val_run = test_run - 1
     

@@ -73,7 +73,7 @@ for target in target_list:
                 exit()
             
             # Training Normalizing Flow
-            smooth=False
+            smooth=True
             savepath, plot_savepath, net_savepath,exp = format_directory(cfg_temp, run, stimuli_index)
             make_directory(exp, savepath, plot_savepath, net_savepath)
             initialized, test_loader, data_spike, data_smooth, q = setup_conditional_flow(cfg_temp, 

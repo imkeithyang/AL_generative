@@ -28,7 +28,6 @@ with open(net_yamlfilepath, 'r') as f:
 cfg["att_encoder"] = cfg_net["att_encoder"]    
 cfg["flow_net"] = cfg_net["flow_net"]
 cfg["data"]["batch_size"] = cfg_net["batch_size"]
-cfg["data"]["sigma"] = 0.01
 
 n_runs = cfg['n_runs']
 n_tries = cfg['n_tries']
