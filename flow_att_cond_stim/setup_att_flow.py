@@ -26,7 +26,9 @@ def setup_att_flow(cfg, important_index, device,run):
     
     # load data
     train_loader, val_loader, test_loader, val_data_spike, val_data_smooth, val_q, data_spike, data_smooth, q = load_data_flow(**data_params)
-    
+    if important_index is None:
+        important_index = list(range(data_spike[0].shape[1]))
+        
     n_neurons = train_loader.dataset.tensors[1].shape[-1]
     stimuli_dim = train_loader.dataset.tensors[2].shape[-1]
     time_dim = train_loader.dataset.tensors[4].shape[-1]

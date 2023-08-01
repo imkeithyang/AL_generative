@@ -39,7 +39,7 @@ def make_spiketrain(df, stimuli, run, neurons, time_resolution, min_spike = 0, p
     """
     
     time_scale = 10**time_resolution
-    tot_timestep = time_scale if pre_stim is False else int(time_scale*1.1)
+    tot_timestep = int(time_scale*1.2)
     data_concat = np.zeros((tot_timestep,len(neurons)))
     data_stimuli = df[df["stimuli"] == stimuli]
     for j, neuron in enumerate(neurons):

@@ -30,7 +30,7 @@ for target in target_list:
     cfg_temp = copy.deepcopy(cfg)
     cfg_temp["data"]["target"] = target
     
-    important_index = [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+    important_index = None
     
     for run in range(0,n_runs):
         q_temp = []
@@ -78,7 +78,7 @@ for target in target_list:
             target_neuron   = initialized["target_neuron"]
             scaling_factor  = initialized["scaling_factor"]
             sigma           = initialized["sigma"]
-            
+            important_index = initialized["important_index"]
             
             for stimuli, d_spike, d_smooth in zip(q, data_spike, data_smooth):
                 spike_train = generate_spike_train_att_flow(encoder_best, flow_net_best,linear_transform_best, 

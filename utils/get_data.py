@@ -74,7 +74,8 @@ def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_inde
     target_time = np.diff(spike_time_unscaled)/time_scale
     source_time = []
     source_time_smooth = [] if data_concat_smooth is not None else None
-    
+    if important_index is None:
+        important_index = list(range(data_concat.shape[1]))
     # Create window for spikes
     for t_index in range(len(target_time)):
         t = spike_time_unscaled[t_index]
@@ -147,9 +148,6 @@ def split_all_stimuli_flow(df, neurons, target,
     all_stimuli_count = dict(sorted(all_stimuli_count.items()))
     num_stimuli = len(all_stimuli_count)
     val_run = test_run - 1
-    
-    
-    neurons_index = np.zeros(shape=(len(important_index)))
     
     ar_stimuli = np.array([])
     ar_window_spike = np.array([])

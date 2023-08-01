@@ -4,7 +4,7 @@ import pickle
 import copy
 
 from utils import *
-from flow_rnn import *
+from deepAR import *
 
 args = get_parser().parse_args()
 if args.device is None:

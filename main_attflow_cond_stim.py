@@ -6,6 +6,7 @@ import copy
 import os
 from utils import *
 from flow_att_cond_stim import *
+from pathlib import Path
 
 args = get_parser().parse_args()
 if args.device is None:
@@ -18,9 +19,9 @@ with open(yaml_filepath, 'r') as f:
     cfg = yaml.load(f, yaml.SafeLoader)
 
 # Different Attention/Flow Net structure from the unconditional attflow
-net_yamlfilepath = os.path.dirname(os.path.abspath(__file__))
-net_yamlfilepath = os.path.join(net_yamlfilepath, "config/sparse-attflow-net.yaml") if "sparse" in yaml_filepath else \
-    os.path.join(net_yamlfilepath, "config/attflow-net.yaml")
+net_yamlfilepath = Path(yaml_filepath).parent.parent
+net_yamlfilepath = os.path.join(net_yamlfilepath, "sparse-attflow-net.yaml") if "sparse" in yaml_filepath else \
+    os.path.join(net_yamlfilepath, "attflow-net.yaml")
     
 with open(net_yamlfilepath, 'r') as f:
     cfg_net = yaml.load(f, yaml.SafeLoader)
@@ -43,7 +44,7 @@ for target in target_list:
     cfg_temp = copy.deepcopy(cfg)
     cfg_temp["data"]["target"] = target
     
-    important_index = [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+    important_index = None
     
     for run in range(0,n_runs):
         q_temp = []
@@ -89,24 +90,24 @@ for target in target_list:
         target_neuron   = initialized["target_neuron"]
         scaling_factor  = initialized["scaling_factor"]
         sigma           = initialized["sigma"]
-        
+        important_index = initialized["important_index"]
         
         for stimuli, d_spike, d_smooth in zip(q, data_spike, data_smooth):
             spike_train = generate_spike_train_att_flow(encoder_best, flow_net_best,linear_transform_best, 
-                                                            device,
-                                                            target_neuron,
-                                                            important_index,
-                                                            window_size, 
-                                                            n_neurons, 
-                                                            torch.from_numpy(stimuli).float(), 
-                                                            time_resolution, 
-                                                            sigma,
-                                                            torch.from_numpy(d_spike).float(), 
-                                                            torch.from_numpy(d_smooth).float(),
-                                                            scaling_factor=scaling_factor,
-                                                            filler=filler, 
-                                                            smooth=smooth,
-                                                            num_of_spike_train=100)
+                                                        device,
+                                                        target_neuron,
+                                                        important_index,
+                                                        window_size, 
+                                                        n_neurons, 
+                                                        torch.from_numpy(stimuli).float(), 
+                                                        time_resolution, 
+                                                        sigma,
+                                                        torch.from_numpy(d_spike).float(), 
+                                                        torch.from_numpy(d_smooth).float(),
+                                                        scaling_factor=scaling_factor,
+                                                        filler=filler, 
+                                                        smooth=smooth,
+                                                        num_of_spike_train=100)
             spike_train_list.append(spike_train)
             data_emp.append(d_spike)
             data_gen.append(spike_train[0])
