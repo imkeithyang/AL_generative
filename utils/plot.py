@@ -2,6 +2,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 
+def plot_loss(val_dict, num_epochs, plot_savepath):
+    fig, axes = plt.subplots(nrows=1, ncols=len(val_dict), figsize=(3*len(val_dict), 3))
+    for i,metric in enumerate(list(val_dict.keys())):
+        axes[i].plot(list(range(num_epochs)), val_dict[metric].reshape((val_dict[metric].shape[0], -1)).mean(axis=1))
+        axes[i].set_title(metric)
+        
+    plt.savefig("{}/metric_epoch.png".format(plot_savepath))
+
 def plot_spike(data_concat, neurons, plot_savepath, epoch, q):
     fig, ax = plt.subplots(figsize=(10,1*len(neurons)), nrows=len(neurons))
     for i, neuron in enumerate(neurons):

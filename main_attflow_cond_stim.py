@@ -29,6 +29,7 @@ with open(net_yamlfilepath, 'r') as f:
 cfg["att_encoder"] = cfg_net["att_encoder"]    
 cfg["flow_net"] = cfg_net["flow_net"]
 cfg["data"]["batch_size"] = cfg_net["batch_size"]
+cfg["data"]["use_component"] = ("use_component" in yaml_filepath)
 
 n_runs = cfg['n_runs']
 n_tries = cfg['n_tries']
@@ -70,7 +71,7 @@ for target in target_list:
         initialized["device"] = device
         initialized["smooth"] = smooth
         all_stats, best_epoch = train_att_flow(**initialized)
-        
+        plot_loss(all_stats, cfg["n_epochs"], plot_savepath)
         encoder_best = initialized["encoder"]
         encoder_best.load_state_dict(torch.load(net_savepath + "/encoder.pt"))
         encoder_best.eval()

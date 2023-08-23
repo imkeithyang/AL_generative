@@ -141,12 +141,28 @@ def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_inde
 
 def split_all_stimuli_flow(df, neurons, target,
                            time_resolution,stimuli_index, important_index, test_run, window_size=3, 
-                           min_spike = 0, sigma=0.001, filler=-1,pre_stim=False):
+                           min_spike = 0, sigma=0.001, filler=-1,pre_stim=False, use_component=False):
+    
+    components =["0-BEA","0-BOL","0-MAL","0-MYR","0-LIN","0-NER","0-GER","0-ISO","0-FAR", "0-DATEXT", "0-CTL"]
+    mixture_components = {"1-P9":["0-BEA","0-BOL","0-MAL","0-MYR","0-LIN","0-NER","0-GER","0-ISO","0-FAR"],
+                  "1-P9_TEN":["0-BEA","0-BOL","0-MAL","0-MYR","0-LIN","0-NER","0-GER","0-ISO","0-FAR"],
+                  "1-P9_HUND":["0-BEA","0-BOL","0-MAL","0-MYR","0-LIN","0-NER","0-GER","0-ISO","0-FAR"],
+                  "1-P9_TENTHOUS":["0-BEA","0-BOL","0-MAL","0-MYR","0-LIN","0-NER","0-GER","0-ISO","0-FAR"],
+                  "1-P5":["0-BEA","0-BOL","0-LIN","0-NER","0-GER"],
+                  "1-P4":["0-BEA","0-BOL","0-LIN","0-NER"],
+                  "1-P3":["0-BEA","0-BOL","0-LIN"],
+                  "0-M6":["0-MAL","0-MYR","0-NER","0-GER","0-ISO","0-FAR"],
+                  "0-M5":["0-MAL","0-MYR","0-GER","0-ISO","0-FAR"],
+                  "0-M4":["0-MAL","0-MYR","0-ISO","0-FAR"],
+                  "0-M3":["0-MAL","0-ISO","0-FAR"],
+                  "0-M2":["0-BEA","0-BOL"]}
+    
     df[["label", "stimuli"]].drop_duplicates()
-    df["label_stim"] = df["label"].astype(str) + "-" + df["stimuli"]
+    df["label_stim"] = df["label"].astype(str) + "-" + df["stimuli"].str.upper()
     all_stimuli_count = df.value_counts("label_stim").to_dict()
     all_stimuli_count = dict(sorted(all_stimuli_count.items()))
-    num_stimuli = len(all_stimuli_count)
+    num_stimuli = len(all_stimuli_count) - 12 if use_component else len(all_stimuli_count)
+        
     val_run = test_run - 1
     
     ar_stimuli = np.array([])
@@ -176,10 +192,19 @@ def split_all_stimuli_flow(df, neurons, target,
     data_concat_window_smooth = []
     data_concat_target = []
     
-
     for s_index, s in enumerate(all_stimuli_count):
         if s_index not in set(list(stimuli_index) if isinstance(stimuli_index, range) else [stimuli_index]):
             continue
+        
+        # One hot encoding with components
+        if use_component and s in mixture_components:
+            comp = mixture_components[s]
+            s_index = []
+            for c in comp:
+                s_index.append(np.where(np.array(components) == c)[0])
+        elif use_component and s in set(components):
+            s_index = np.where(np.array(components) == s)[0]
+
         for run in range(all_stimuli_count[s]):
             if val_run < 0:
                 val_run = all_stimuli_count[s]-1
@@ -278,10 +303,13 @@ def load_data_flow(path,
                    test_run,
                    stimuli_index = None,
                    minimum_spike_count=0, 
-                   batch_size=128, seed=0, sigma=0.1, scaling_factor=1, filler=-1):
+                   batch_size=128, seed=0, sigma=0.1, 
+                   scaling_factor=1, filler=-1,
+                   use_component=False):
     torch.manual_seed(seed)
     np.random.seed(seed)
     pre_stim = ("pre_stimuli" in path)
+    
     data_moth, neurons = read_moth(path, time_resolution)
     if stimuli_index is None:
         stimuli_index = range(0,23)
@@ -296,7 +324,8 @@ def load_data_flow(path,
                                        minimum_spike_count,
                                        sigma,
                                        filler,
-                                       pre_stim)
+                                       pre_stim,
+                                       use_component=use_component)
     training_data, validating_data, testing_data, val_generative_comparison, generative_comparison = extracted
     
     ar_window_spike = training_data[0]

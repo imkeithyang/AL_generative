@@ -28,11 +28,18 @@ def train_att_flow(n_epochs,
     savepath, plot_savepath, net_savepath = paths
     
     val_loss_list = []
-    val_loss_flow_list = []
+    
+    val_crps_list = []
+    val_isi_dist_list = []
+    val_spike_dist_list = []
+    
     best_epoch = 0
     
     pbar = tqdm(total=n_epochs)
     val_loss = 0
+    val_crps = 0
+    val_isi_dist_mean = 0
+    val_spike_dist_mean = 0
     for i in range(n_epochs):
         
         for batch_idx, data in enumerate(train_loader):
@@ -55,30 +62,32 @@ def train_att_flow(n_epochs,
             loss_flow.backward()
             optimizer.step()
             
-            pbar.set_description("Epoch-batch: {}-{} | loss: {:.2f} | val loss: {:.2f} Best Epoch: {}".format(
+            pbar.set_description("Epoch: {} | loss: {:.2f} | val loss: {:.2f} | CRPS: {:.3f} | ISI: {:.3f} | SPIKE : {:.3f} Best Epoch: {}".format(
                 i+1, 
-                batch_idx+1,
                 np.round(loss_flow.detach().cpu().numpy(), 2),
                 np.round(val_loss, 2),
+                np.round(val_crps, 3),
+                np.round(val_isi_dist_mean, 3),
+                np.round(val_spike_dist_mean, 3),
                 best_epoch
             ))
         if (i+1)%1 == 0:
             flow_loss = validate_att_flow(encoder, flow_net, linear_transform,
                                                  val_loader, device,smooth=smooth)
             val_loss = flow_loss
-            if len(val_loss_flow_list) == 1 or \
-                (len(val_loss_flow_list) > 1 and np.min(val_loss_flow_list[1:]) > flow_loss):
+            if len(val_loss_list) == 1 or \
+                (len(val_loss_list) > 1 and np.min(val_loss_list[1:]) > flow_loss):
                 torch.save(encoder.state_dict(),  net_savepath + "/encoder.pt")
                 torch.save(flow_net.state_dict(), net_savepath + "/flow_net.pt")
                 best_epoch = i+1
                 
             val_loss_list.append(flow_loss)
-            val_loss_flow_list.append(flow_loss)
-            
-        if (i+1)%(n_epochs/5) == 0:
+
             with torch.no_grad():
                 data_gen = []
-                crps_list = []
+                temp_crps_list = []
+                temp_isi_dist_list = []
+                temp_spike_dist_list = []
                 for stimuli, d_spike, d_smooth in zip(q, data_spike, data_smooth):
                     spike_train = generate_spike_train_att_flow(encoder, flow_net,linear_transform,
                                                                 device,
@@ -93,7 +102,8 @@ def train_att_flow(n_epochs,
                                                                 torch.from_numpy(d_smooth).float(), 
                                                                 scaling_factor=scaling_factor,
                                                                 filler=filler,
-                                                                smooth=smooth)
+                                                                smooth=smooth,
+                                                                num_of_spike_train=10)
                     data_gen.append(spike_train[0])
                     crps = evaluate_crps(encoder, flow_net,linear_transform,
                                   device,
@@ -109,8 +119,25 @@ def train_att_flow(n_epochs,
                                   scaling_factor=scaling_factor,
                                   smooth=smooth,
                                   num_samples=2000)
-                    crps_list.append(crps)
+                    isi_dist, spike_dist = evaluate_spike_distance(d_spike, 
+                                                                             spike_train, 
+                                                                             target_neuron, 
+                                                                             time_resolution)
                     
+                    temp_crps_list.append(crps)
+                    temp_isi_dist_list.append(np.mean(isi_dist))
+                    temp_spike_dist_list.append(np.mean(spike_dist))
+                    
+                    
+                val_crps = np.mean(temp_crps_list)
+                val_isi_dist_mean = np.mean(temp_isi_dist_list)
+                val_spike_dist_mean = np.mean(temp_spike_dist_list)
+                    
+                val_isi_dist_list.append(temp_isi_dist_list)
+                val_spike_dist_list.append(temp_spike_dist_list)
+                val_crps_list.append(temp_crps_list)
+                
+            if (i+1)%(n_epochs/5) == 0:
                 plot_spike_compare(data_spike, 
                                    data_gen, 
                                    important_index,
@@ -119,15 +146,13 @@ def train_att_flow(n_epochs,
                                    q, 
                                    target=target_neuron)
                 
-                print("CRPS by Stimuli: {}".format(np.round(crps_list, 3)))
-                
         encoder.train()
         flow_net.train()
             
         pbar.update(1) 
     pbar.close()
-
-    return val_loss_list, best_epoch
+    val_dict = {"val_loss":val_loss_list, "val_crps":val_crps_list, "val_isi":val_isi_dist_list, "val_spike":val_spike_dist_list}
+    return val_dict, best_epoch
 
 
 

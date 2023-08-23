@@ -7,11 +7,12 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
-
+import torch
 import pandas as pd
 import numpy as np
 from scipy.signal import correlate, correlation_lags
 import json
+from .get_data import read_moth
 
 
 stimuli = ['P9_TenThous', 'M4', 'Bol', 'Ctl', 'DatExt', 'Far', 'Ger', 'Iso', 
@@ -126,6 +127,8 @@ def analyze_result(yaml_filepath, verbose=True, cond=False):
     fla_crps_stack = crps_stack.reshape(crps_stack.shape[0]*crps_stack.shape[1],-1)
     fla_isi_stack = isi_stack.reshape(isi_stack.shape[0]*isi_stack.shape[1],-1)
     fla_spike_stack = spike_stack.reshape(spike_stack.shape[0]*spike_stack.shape[1],-1)
+    del test_stats_run
+    torch.cuda.empty_cache()
     return fla_crps_stack, fla_isi_stack, fla_spike_stack
 
 
@@ -174,6 +177,8 @@ def analyze_betai(yaml_filepath, cond=False):
     n_runs = cfg_temp["n_runs"]
     time_scale = 10**cfg_temp["data"]["time_resolution"]
     
+    _, neurons = read_moth(cfg_temp["data"]["path"])
+    
     betai_matrix_stack = []
     ensemble_stack = []
     pre_stim_ensemble_stack = []
@@ -201,8 +206,9 @@ def analyze_betai(yaml_filepath, cond=False):
         pre_stim_ensemble_stack.append(pre_stim_ensemble_list)
         stim_ensemble_stack.append(stim_ensemble_list)
         post_stim_ensemble_stack.append(post_stim_ensemble_list)
-
-    return betai_matrix_stack, pre_stim_ensemble_stack, stim_ensemble_stack, post_stim_ensemble_stack
+    del test_stats_run
+    torch.cuda.empty_cache()
+    return betai_matrix_stack, pre_stim_ensemble_stack, stim_ensemble_stack, post_stim_ensemble_stack, neurons
 
 def build_beta_matrix(q, betai_list, time_list, time_scale, spike_length):
     betai_matrix_list = []
@@ -225,15 +231,21 @@ def build_beta_matrix(q, betai_list, time_list, time_scale, spike_length):
     return betai_matrix_list, pre_stim_ensemble_list, stim_ensemble_list, post_stim_ensemble_list
             
             
-def plot_ensemble(ensemble_list, method_list, target, q_labels, section="During"):
+def plot_ensemble(ensemble_list, method_list, target, q_labels,  neurons, section="During"):
     fig, axes = plt.subplots(ncols=len(ensemble_list), nrows=1, figsize=(3*len(ensemble_list), 5))
     for i, ensemble in enumerate(ensemble_list):
         axes[i].imshow(np.array(ensemble_list[i]).mean(0), aspect='auto')
         if i == 0:
+            axes[i].set_xticks(list(range(len(neurons))))
+            axes[i].set_xticklabels(neurons)
             axes[i].set_yticks(list(range(len(q_labels))))
             axes[i].set_yticklabels(q_labels)
+            axes[i].tick_params(axis='x', rotation=90)
         else:
+            axes[i].set_xticks(list(range(len(neurons))))
+            axes[i].set_xticklabels(neurons)
             axes[i].set_yticklabels([])
+            axes[i].tick_params(axis='x', rotation=90)
         axes[i].set_title(method_list[i])
     plt.suptitle("{} Stimulus Neuron {} Spatio Attention".format(section, target))
     plt.tight_layout()
