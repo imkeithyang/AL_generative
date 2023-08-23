@@ -71,7 +71,7 @@ for target in target_list:
         initialized["device"] = device
         initialized["smooth"] = smooth
         all_stats, best_epoch = train_att_flow(**initialized)
-        plot_loss(all_stats, cfg["n_epochs"], plot_savepath)
+        plot_loss(all_stats, cfg["n_epochs"], savepath)
         encoder_best = initialized["encoder"]
         encoder_best.load_state_dict(torch.load(net_savepath + "/encoder.pt"))
         encoder_best.eval()

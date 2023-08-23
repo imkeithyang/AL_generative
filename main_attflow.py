@@ -15,7 +15,7 @@ else:
 yaml_filepath = args.filename
 with open(yaml_filepath, 'r') as f:
     cfg = yaml.load(f, yaml.SafeLoader)
-
+cfg["data"]["use_component"] = ("use_component" in yaml_filepath)
 n_runs = cfg['n_runs']
 n_tries = cfg['n_tries']
 
