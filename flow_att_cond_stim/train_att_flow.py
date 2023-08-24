@@ -186,7 +186,8 @@ def generate_spike_train_att_flow(encoder, flow_net, linear_transform,
             conditional = torch.cat([rnn_out, q, spike_time], -1)
             interarrival_sample = -1
             while interarrival_sample<0 or torch.isnan(interarrival_sample):
-                interarrival_sample = flow_net.sample(cond_inputs=conditional)/scaling_factor
+                interarrival_samples = flow_net.sample(cond_inputs=conditional.repeat(100,1))/scaling_factor
+                interarrival_sample = interarrival_samples[interarrival_samples > 0][0]
             # add to last spike time
             
             spike_time += interarrival_sample
@@ -196,8 +197,6 @@ def generate_spike_train_att_flow(encoder, flow_net, linear_transform,
             # update spike
             spike_train[:,spike_time_index, target_neuron] = 1
             
-            
-                
             window_in = spike_train[:,spike_time_index-window_size:spike_time_index,important_index]
             if smooth:
                 window_in = torch.from_numpy(
@@ -214,6 +213,10 @@ def generate_spike_train_att_flow(encoder, flow_net, linear_transform,
                         ).unsqueeze(0)
 
         spike_train_list.append(spike_train.squeeze(0).detach().cpu().numpy())
+        
+        del spike_train
+        torch.cuda.empty_cache()
+        
     return spike_train_list
 
 def validate_att_flow(encoder, flow_net, linear_transform, val_loader, device, smooth=True):

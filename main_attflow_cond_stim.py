@@ -30,7 +30,6 @@ cfg["att_encoder"] = cfg_net["att_encoder"]
 cfg["flow_net"] = cfg_net["flow_net"]
 cfg["data"]["batch_size"] = cfg_net["batch_size"]
 cfg["data"]["use_component"] = ("use_component" in yaml_filepath)
-
 n_runs = cfg['n_runs']
 n_tries = cfg['n_tries']
 
