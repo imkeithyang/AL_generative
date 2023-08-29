@@ -103,7 +103,7 @@ def train_att_flow(n_epochs,
                                                                 scaling_factor=scaling_factor,
                                                                 filler=filler,
                                                                 smooth=smooth,
-                                                                num_of_spike_train=10)
+                                                                num_of_spike_train=1)
                     data_gen.append(spike_train[0])
                     crps = evaluate_crps(encoder, flow_net,linear_transform,
                                   device,
@@ -120,9 +120,9 @@ def train_att_flow(n_epochs,
                                   smooth=smooth,
                                   num_samples=2000)
                     isi_dist, spike_dist = evaluate_spike_distance(d_spike, 
-                                                                             spike_train, 
-                                                                             target_neuron, 
-                                                                             time_resolution)
+                                                                   spike_train, 
+                                                                   target_neuron, 
+                                                                   time_resolution)
                     
                     temp_crps_list.append(crps)
                     temp_isi_dist_list.append(np.mean(isi_dist))

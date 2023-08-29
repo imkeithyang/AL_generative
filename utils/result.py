@@ -63,6 +63,7 @@ def analyze_result(yaml_filepath, verbose=True, cond=False):
     else:
         target_list = [cfg["data"]["target"]]
 
+    cfg["use_component"] = ("use_component" in yaml_filepath)
     n_runs = cfg["n_runs"]
     count_all_target_reject = []
     
@@ -172,6 +173,7 @@ def analyze_betai(yaml_filepath, cond=False):
     with open(yaml_filepath, 'r') as f:
         cfg = yaml.load(f, yaml.SafeLoader)
         
+    cfg["data"]["use_component"] = ("use_component" in yaml_filepath)
     cfg_temp = copy.deepcopy(cfg)
     cfg_temp["data"]["target"] = cfg_temp["data"]["target"][0]
     n_runs = cfg_temp["n_runs"]
@@ -193,9 +195,9 @@ def analyze_betai(yaml_filepath, cond=False):
         with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:
             test_stats_run = pickle.load(f)
         
-        q = ['1-P9_TenThous', '0-M4', '0-Bol', '0-Ctl', '0-DatExt', '0-Far', '0-Ger', '0-Iso', 
-               '0-Lin', '0-M2', '0-M3', '0-M5', '1-P9_Ten', '0-M6', 
-               '0-Mal', '0-Myr', '0-Ner', '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '0-Bea']
+        q = ['0-Bea', '0-Bol', '0-Ctl', '1-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
+                 '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-Mal', '0-Myr', '0-Ner', 
+                 '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous']
         
         betai_list = test_stats_run["betai_list"]
         time_list = test_stats_run["time_list"]
@@ -232,20 +234,31 @@ def build_beta_matrix(q, betai_list, time_list, time_scale, spike_length):
             
             
 def plot_ensemble(ensemble_list, method_list, target, q_labels,  neurons, section="During"):
+    name_sort = np.argsort(neurons)
+    stim_sort = np.argsort(q_labels)
     fig, axes = plt.subplots(ncols=len(ensemble_list), nrows=1, figsize=(3*len(ensemble_list), 5))
-    for i, ensemble in enumerate(ensemble_list):
-        axes[i].imshow(np.array(ensemble_list[i]).mean(0), aspect='auto')
-        if i == 0:
-            axes[i].set_xticks(list(range(len(neurons))))
-            axes[i].set_xticklabels(neurons)
-            axes[i].set_yticks(list(range(len(q_labels))))
-            axes[i].set_yticklabels(q_labels)
-            axes[i].tick_params(axis='x', rotation=90)
-        else:
-            axes[i].set_xticks(list(range(len(neurons))))
-            axes[i].set_xticklabels(neurons)
-            axes[i].set_yticklabels([])
-            axes[i].tick_params(axis='x', rotation=90)
-        axes[i].set_title(method_list[i])
-    plt.suptitle("{} Stimulus Neuron {} Spatio Attention".format(section, target))
+    
+    if len(ensemble_list) == 1:
+        axes.imshow(np.array(ensemble_list[0]).mean(0)[stim_sort,:][:,name_sort], aspect='auto')
+        axes.set_xticks(list(range(len(neurons))))
+        axes.set_xticklabels(np.array(neurons)[name_sort])
+        axes.set_yticks(list(range(len(q_labels))))
+        axes.set_yticklabels(np.array(q_labels)[stim_sort])
+        axes.tick_params(axis='x', rotation=90)
+    else:
+        for i, ensemble in enumerate(ensemble_list):
+            axes[i].imshow(np.array(ensemble_list[i]).mean(0)[stim_sort,:][:,name_sort], aspect='auto')
+            if i == 0:
+                axes[i].set_xticks(list(range(len(neurons))))
+                axes[i].set_xticklabels(np.array(neurons)[name_sort])
+                axes[i].set_yticks(list(range(len(q_labels))))
+                axes[i].set_yticklabels(np.array(q_labels)[stim_sort])
+                axes[i].tick_params(axis='x', rotation=90)
+            else:
+                axes[i].set_xticks(list(range(len(neurons))))
+                axes[i].set_xticklabels(np.array(neurons)[name_sort])
+                axes[i].set_yticklabels([])
+                axes[i].tick_params(axis='x', rotation=90)
+            axes[i].set_title(method_list[i])
+    #plt.suptitle("{} Stimulus Neuron {} Spatio Attention".format(section, target))
     plt.tight_layout()

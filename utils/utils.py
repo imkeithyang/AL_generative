@@ -37,7 +37,7 @@ def get_parser():
 
 def format_directory(cfg, run, stimuli=None):
     exp = cfg["data"]["path"].split("/")[-1]
-    exp = exp[0:-4]
+    exp = "result/" + exp[0:-4]
     if cfg["data"]["use_component"]:
         exp += "_use_comp"
     if "pre_stimuli" in cfg["data"]["path"]:

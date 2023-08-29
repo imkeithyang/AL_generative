@@ -26,7 +26,7 @@ def plot_spike_compare(data_concat_true, data_concat_gen, important_neurons,
                        plot_savepath, epoch, q, target, 
                        data_likelihood_list = None, gen_likelihood_list=None):
     fig, ax = plt.subplots(figsize=(10*2,1.5*len(q)), nrows=len(q), ncols=2 if data_likelihood_list is None else 3)
-    stim_name = ['0-Bea', '0-Bol', '0-Ctl', '0-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
+    stim_name = ['0-Bea', '0-Bol', '0-Ctl', '1-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
                  '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-Mal', '0-Myr', '0-Ner', 
                  '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous']
     if len(q) > 1:
@@ -70,7 +70,7 @@ def plot_spike_compare(data_concat_true, data_concat_gen, important_neurons,
     
 def plot_betai_compare(time_list, betai_list, spike_sync_list, spike_length,time_resolution,
                        plot_savepath, epoch, q, target):
-    stim_name = ['0-Bea', '0-Bol', '0-Ctl', '0-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
+    stim_name = ['0-Bea', '0-Bol', '0-Ctl', '1-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
                  '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-Mal', '0-Myr', '0-Ner', 
                  '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous']
     
@@ -101,7 +101,7 @@ def plot_betai_compare(time_list, betai_list, spike_sync_list, spike_length,time
     
 def plot_betai_compare_rnn(betai_list, spike_sync_list, spike_length, time_resolution,
                        plot_savepath, epoch, q, target):
-    stim_name = ['0-Bea', '0-Bol', '0-Ctl', '0-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
+    stim_name = ['0-Bea', '0-Bol', '0-Ctl', '1-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
                  '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-Mal', '0-Myr', '0-Ner', 
                  '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous']
     time_scale = 10**time_resolution
