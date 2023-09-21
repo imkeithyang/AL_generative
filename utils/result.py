@@ -247,7 +247,10 @@ def plot_ensemble(ensemble_list, method_list, target, q_labels,  neurons, sectio
         axes.tick_params(axis='x', rotation=90)
     else:
         for i, ensemble in enumerate(ensemble_list):
-            axes[i].imshow(np.array(ensemble_list[i]).mean(0)[stim_sort,:][:,name_sort], aspect='auto')
+            if np.array(ensemble_list[i]).shape[0] == 23:
+                axes[i].imshow(np.array(ensemble_list[i]).mean(-1)[stim_sort,:][:,name_sort], aspect='auto')
+            else:
+                axes[i].imshow(np.array(ensemble_list[i]).mean(0)[stim_sort,:][:,name_sort], aspect='auto')
             if i == 0:
                 axes[i].set_xticks(list(range(len(neurons))))
                 axes[i].set_xticklabels(np.array(neurons)[name_sort])

@@ -52,6 +52,7 @@ for target in target_list:
         data_emp = []
         crps_list = []
         betai_list = []
+        alphai_list = []
         spike_sync_list = []
         time_list = []
         data_likelihood_list = []
@@ -70,7 +71,7 @@ for target in target_list:
         initialized["device"] = device
         initialized["smooth"] = smooth
         all_stats, best_epoch = train_att_flow(**initialized)
-        plot_loss(all_stats, cfg["n_epochs"], savepath)
+        plot_loss(all_stats, initialized["n_epochs"], savepath)
         encoder_best = initialized["encoder"]
         encoder_best.load_state_dict(torch.load(net_savepath + "/encoder.pt"))
         encoder_best.eval()
@@ -150,7 +151,12 @@ for target in target_list:
                                         d_spike, d_smooth, stimuli, important_index,sigma,
                                         window_size, target_neuron, 
                                         time_resolution, filler, smooth=smooth)
+            time, alphai = evaluate_alphai(encoder_best, device, 
+                                        d_spike, d_smooth, stimuli, important_index,sigma,
+                                        window_size, target_neuron, 
+                                        time_resolution, filler, smooth=smooth)
             spike_sync_mat = evaluate_spikesync_unit_pairs(d_spike, target_neuron, time_resolution)
+            alphai_list.append(alphai)
             betai_list.append(betai)
             time_list.append(time)
             spike_sync_list.append(spike_sync_mat)
@@ -186,6 +192,9 @@ for target in target_list:
         spike_length = data_spike[0].shape[0]
         plot_betai_compare(time_list, betai_list, spike_sync_list, spike_length, time_resolution,
                    savepath, "test", q_temp, target)
+        plot_spatiotemporal_compare(time_list, betai_list, alphai_list, window_size, 
+                                    spike_length, time_resolution,
+                   savepath, "test", q_temp, target)
         
         test_stats = {"test_stats":test_stats,"crps_list":crps_list,
                   "data_emp":np.array(data_emp), "data_gen":np.array(data_gen),
@@ -195,7 +204,8 @@ for target in target_list:
                   "isi_distance_list":isi_distance_list, 
                   "spike_distance_list":spike_distance_list,
                   "time_list": time_list,
-                  "betai_list": betai_list}
+                  "betai_list": betai_list,
+                  "alphai_list": alphai_list}
         
         with open(os.path.join(savepath,'test_stats.pkl'), 'wb') as f:
             pickle.dump(test_stats, f)

@@ -83,7 +83,7 @@ def plot_betai_compare(time_list, betai_list, spike_sync_list, spike_length,time
             t_start = 0
             for j,t in enumerate(time_list[i][1:]):
                 t_end = int(t*time_scale)
-                betai_matrix[:,t_start:t_end] = betai_list[i][j].detach().cpu().numpy()
+                betai_matrix[:,t_start:t_end] = betai_list[i][j].detach().cpu().numpy()/betai_list[i][j].detach().cpu().numpy().mean()
                 t_start = t_end
                 
             ax[i][0].imshow(betai_matrix, aspect='auto')
@@ -96,6 +96,34 @@ def plot_betai_compare(time_list, betai_list, spike_sync_list, spike_length,time
             
     plt.tight_layout()
     plt.savefig("{}/betai-{}-all-stimuli.png".format(plot_savepath, epoch))
+    plt.close()
+    
+def plot_spatiotemporal_compare(time_list, betai_list, alphi_list, window_size, spike_length,time_resolution,
+                       plot_savepath, epoch, q, target):
+    stim_name = ['0-Bea', '0-Bol', '0-Ctl', '1-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
+                 '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-Mal', '0-Myr', '0-Ner', 
+                 '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous']
+    
+    time_scale = 10**time_resolution
+    fig, ax = plt.subplots(figsize=(6,3*len(q)), nrows=len(q), ncols=1)
+    if len(q) > 1:
+        for i, stimuli in enumerate(q):
+            sti = np.where(stimuli == 1)[1][0]
+            sptatt_matrix = np.zeros((betai_list[i].shape[1],spike_length))
+            t_start = 0
+            for j,t in enumerate(time_list[i][1:]):
+                t_end = int(t*time_scale)
+                sptatt = betai_list[i][j].detach().cpu().numpy()/betai_list[i][j].detach().cpu().numpy().mean()*\
+                    alphi_list[i][j].detach().cpu().numpy().T/alphi_list[i][j].detach().cpu().numpy().mean()
+                sptatt_matrix[:,max(0,t_end-window_size):t_end] += sptatt[:,abs(min(0,t_end - window_size)):]
+                t_start = t_end
+                
+            ax[i].imshow(sptatt_matrix, aspect='auto')
+            ax[i].set_yticks(list(range(betai_list[i].shape[1])))
+            ax[i].set_title("Stimuli {} Neuron {} Spatio Temporal Weights".format(stim_name[i], target), loc="left")
+            
+    plt.tight_layout()
+    plt.savefig("{}/sptatt-{}-all-stimuli.png".format(plot_savepath, epoch))
     plt.close()
     
     

@@ -75,7 +75,7 @@ class att_encoder(nn.Module):
             self.final_dense = nn.Linear(num_rnn_hidden, context_dense_size)
             self.final_act = nn.ReLU()
         
-    def forward(self, x, stimuli=None, hidden=None):
+    def forward(self, x, stimuli=None, hidden=None, get_temporal=False):
         rnn_out, hidden = self.rnn_net(x, hidden)
         rnn_out_constig = rnn_out[:,-1,:].contiguous().view(-1, self.rnn_hidden)
         
@@ -92,8 +92,10 @@ class att_encoder(nn.Module):
             spatial_temporal_out, spatial_temporal_hidden = self.rnn_net_att(spatial_temporal_context, None)
             spatial_temporal_embedding = spatial_temporal_out[:,-1,:].contiguous().view(-1, self.rnn_hidden)
             spatial_temporal_embedding = self.final_dense(spatial_temporal_embedding)
-
-            return spatial_temporal_embedding, hidden, betai
+            att_weights = betai
+            if get_temporal:
+                att_weights = alphai
+            return spatial_temporal_embedding, hidden, att_weights
         
         return rnn_out_constig, hidden, None
     

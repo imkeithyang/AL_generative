@@ -72,6 +72,30 @@ def evaluate_betai(encoder, device, data_spike, data_smooth, stimuli,
     
     return time, betai
 
+def evaluate_alphai(encoder, device, data_spike, data_smooth, stimuli, 
+                   important_index, sigma,
+                   window_size, target_neuron, 
+                   time_resolution, filler, smooth=True):
+    data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,sigma,
+                                        window_size, target_neuron, 
+                                        time_resolution, filler,get_last_inf=True)
+    
+    data_target, data_source, data_smooth, time_conditional = data[0], data[1], data[2], data[3]
+    data_target = torch.from_numpy(data_target).float().to(device)
+    data_smooth = torch.from_numpy(data_smooth).float().to(device)
+    data_source = torch.from_numpy(data_source).float().to(device)
+    stimuli     = torch.from_numpy(stimuli).float().to(device)
+    time = torch.from_numpy(time_conditional).float().to(device)
+    stimuli_rep = stimuli.repeat(data_smooth.shape[0],1)
+    
+    if smooth:
+        data_input = data_smooth
+    else:
+        data_input = data_source
+    rnn_out, hidden, alphai = encoder(data_input, stimuli_rep, get_temporal=True)
+    
+    return time, alphai
+
 def evaluate_crps(encoder, flow_net, linear_transform,
                   device,
                   target_neuron,

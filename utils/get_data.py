@@ -216,7 +216,6 @@ def split_all_stimuli_flow(df, neurons, target,
                                                                        min_spike,
                                                                        pre_stim)
             
-            data_concat_has_spike
             # Smoothing of the spikes
             data_concat_smooth = gaussian_smoothing_spike(data_concat_has_spike,time_resolution,sigma)
             
