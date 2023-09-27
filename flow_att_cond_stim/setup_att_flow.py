@@ -9,6 +9,22 @@ from torch import distributions as d
 
 
 def setup_att_flow(cfg, important_index, device,run):
+    """_summary_
+    Args:
+        cfg: Configuration
+        important_index: neuron index to choose if there is any
+        device: gpu device index
+        run: the iteration that we are running
+
+    Returns:
+        initialized: training parameters and config
+        test_loaders: test loaders
+        data_spike: spike data for testing purposes
+        data_smooth: smoothened spike data for testing purposes
+        q: stimulis
+    """
+    
+    # A bunuch of configurations
     data_params                    = cfg["data"]
     data_params["important_index"] = important_index
     data_params["seed"]            = run
@@ -29,6 +45,7 @@ def setup_att_flow(cfg, important_index, device,run):
     if important_index is None:
         important_index = list(range(data_spike[0].shape[1]))
         
+    # Model parameters
     n_neurons = train_loader.dataset.tensors[1].shape[-1]
     stimuli_dim = train_loader.dataset.tensors[2].shape[-1]
     time_dim = train_loader.dataset.tensors[4].shape[-1]
@@ -41,18 +58,16 @@ def setup_att_flow(cfg, important_index, device,run):
     flow_params["net"]["num_cond_inputs"] =  encoder_params["net"]["context_dense_size"] + stimuli_dim + time_dim\
         if encoder_params["net"]["attention"] \
         else encoder_params["net"]["num_rnn_hidden"] + stimuli_dim + time_dim
-    
-    #flow_params["net"]["num_cond_inputs"] = encoder_params["net"]["num_rnn_hidden"] + stimuli_dim + time_dim
 
     encoder_lr    = encoder_params['lr']
     encoder = att_encoder(**encoder_params['net']).to(device)
     # Initialize Normalizing Flow
-    
     flow_lr            = flow_params["lr"]
     num_inputs         = flow_params["net"]["num_inputs"]
     num_hidden         = flow_params["net"]["num_hidden"]
     s_act              = flow_params["net"]["s_act"]
     t_act              = flow_params["net"]["t_act"]
+    
     # conditional variable include context vector dim + neuron_indicator + stimuli_indicator
     num_cond_inputs = flow_params["net"]["num_cond_inputs"]
     mask = torch.arange(0, num_inputs) % 2
@@ -67,8 +82,7 @@ def setup_att_flow(cfg, important_index, device,run):
             BatchNormFlow(num_inputs)
         ]
         mask = 1 - mask
-    # do not normalize the last layer
-    #modules.pop()
+        
     flow_net = FlowSequential(*modules).to(device)
     linear_transform = None
     flow_net.base = d.normal.Normal(torch.tensor([0.0]).to(device),

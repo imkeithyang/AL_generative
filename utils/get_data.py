@@ -48,6 +48,7 @@ def make_spiketrain(df, stimuli, run, neurons, time_resolution, min_spike = 0, p
     return data_concat, neurons
 
 def gaussian_smoothing_spike(data_concat, time_resolution, sigma):
+    """Gaussian Smooth the spikes based on their timing"""
     time_scale = 10**time_resolution
     tot_time = data_concat.shape[0]/time_scale
     data_concat_smooth = []
@@ -66,6 +67,7 @@ def gaussian_smoothing_spike(data_concat, time_resolution, sigma):
 def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_index,sigma,
                             window_size=3, target_neuron=0, time_resolution=3, filler=-1,
                             get_last_inf = False):
+    """split the spikes into windows and the corresponding label (interarrival spikes)"""
     time_scale = 10**time_resolution
     spike_time_unscaled = np.nonzero(data_concat[:,target_neuron])[0]
     # get inter-arrival time of spike
@@ -143,6 +145,7 @@ def split_all_stimuli_flow(df, neurons, target,
                            time_resolution,stimuli_index, important_index, test_run, window_size=3, 
                            min_spike = 0, sigma=0.001, filler=-1,pre_stim=False, use_component=False):
     
+    # split all stimuli's data, there are multiple runs involved as well
     components =["0-BEA","0-BOL","0-MAL","0-MYR","0-LIN","0-NER","0-GER","0-ISO","0-FAR", "0-DATEXT", "0-CTL"]
     mixture_components = {"1-P9":["0-BEA","0-BOL","0-MAL","0-MYR","0-LIN","0-NER","0-GER","0-ISO","0-FAR"],
                   "1-P9_TEN":["0-BEA","0-BOL","0-MAL","0-MYR","0-LIN","0-NER","0-GER","0-ISO","0-FAR"],
@@ -227,6 +230,9 @@ def split_all_stimuli_flow(df, neurons, target,
                                                           window_size, target, time_resolution, filler)
             ar_target_interarrival, ar_windowed_spike, ar_windowed_smooth, time_conditional  = extracted_data
             
+            # splitting the cases for training validating and testing dataset
+            # For 5 runs, 3 run will be used as training, 1 run for validating, 1 run for testing
+            # This is done in a rotational bases so every run could be used as a testing run
             if ar_target_interarrival.size and run != val_run and run != test_run: 
                 ar_window_spike = np.vstack([ar_window_spike, 
                                     ar_windowed_spike]) if ar_window_spike.size else ar_windowed_spike
@@ -281,6 +287,7 @@ def split_all_stimuli_flow(df, neurons, target,
                 data_concat_window_spike.append(data_concat_has_spike)
                 data_concat_window_smooth.append(data_concat_smooth)
                 
+    # Concatenating all data
     training_data = [ar_window_spike, ar_window_smooth, ar_stimuli, ar_target, ar_time]
     validating_data = [ar_val_window_spike, ar_val_window_smooth, ar_val_stimuli, ar_val_target, ar_val_time]
     testing_data = [ar_test_window_spike, ar_test_window_smooth, ar_test_stimuli, ar_test_target, ar_test_time]
@@ -332,6 +339,8 @@ def load_data_flow(path,
     ar_stimuli = training_data[2]
     ar_target = training_data[3]
     ar_time = training_data[4]
+    
+    # Make loaders
     train_data = torch.utils.data.TensorDataset(torch.from_numpy(ar_window_spike).float(),
                                                torch.from_numpy(ar_window_smooth).float(),
                                                torch.from_numpy(ar_stimuli).float(),
@@ -374,6 +383,3 @@ def load_data_flow(path,
     data_concat_stimuli = generative_comparison[2]
     
     return ar_train_loader, ar_val_loader, ar_test_loader, val_data_concat_has_spike, val_data_concat_smooth, val_data_concat_stimuli, data_concat_has_spike, data_concat_smooth, data_concat_stimuli
-
-
-#load_data_AR("/hpc/group/tarokhlab/hy190/data/AL/ALdata/070921_cleaned.csv",3,10,1,0,0,batch_size=1)

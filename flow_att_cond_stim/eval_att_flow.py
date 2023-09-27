@@ -4,7 +4,19 @@ import pyspike as spk
 
 from utils.get_data import split_window_per_neuron_flow, gaussian_smoothing_spike
 
+
 def evaluate_spike_distance(data_spike, gen_spike_list, target_neuron, time_resolution):
+    
+    """calculating spike distances with the following methods"""
+    #Kreuz T, Haas JS, Morelli A, Abarbanel HDI, Politi A, Measuring spike train synchrony. 
+    # J Neurosci Methods 165, 151 (2007)
+
+    #Kreuz T, Chicharro D, Houghton C, Andrzejak RG, Mormann F, Monitoring spike train synchrony. 
+    # J Neurophysiol 109, 1457 (2013)
+
+    #Kreuz T, Mulansky M and Bozanic N, SPIKY: A graphical user interface for monitoring spike train synchrony, 
+    # J Neurophysiol 113, 3432 (2015)
+
     time_scale = 10**time_resolution
     target_spike_train_emp = np.nonzero(data_spike[:,target_neuron])[0]/time_scale
     edges=(0,data_spike.shape[0]/time_scale)
@@ -26,6 +38,10 @@ def evaluate_spike_distance(data_spike, gen_spike_list, target_neuron, time_reso
     return isi_dist_list, spike_dist_list
 
 def evaluate_spikesync_unit_pairs(data_spike, target_neuron, time_resolution):
+    """calculating spike synchronization with the following methods"""
+    #Kreuz T, Chicharro D, Houghton C, Andrzejak RG, Mormann F, Monitoring spike train synchrony. 
+    # J Neurophysiol 109, 1457 (2013)
+
     time_scale = 10**time_resolution
     tar_spike_train = np.nonzero(data_spike[:,target_neuron])[0]/time_scale
     
@@ -52,6 +68,8 @@ def evaluate_betai(encoder, device, data_spike, data_smooth, stimuli,
                    important_index, sigma,
                    window_size, target_neuron, 
                    time_resolution, filler, smooth=True):
+    
+    """getting spatio attention from model given spikes"""
     data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,sigma,
                                         window_size, target_neuron, 
                                         time_resolution, filler,get_last_inf=True)
@@ -76,6 +94,7 @@ def evaluate_alphai(encoder, device, data_spike, data_smooth, stimuli,
                    important_index, sigma,
                    window_size, target_neuron, 
                    time_resolution, filler, smooth=True):
+    """getting temporal attention given spikes"""
     data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,sigma,
                                         window_size, target_neuron, 
                                         time_resolution, filler,get_last_inf=True)
@@ -110,6 +129,7 @@ def evaluate_crps(encoder, flow_net, linear_transform,
                   scaling_factor=1,
                   smooth=True,
                   num_samples=2000):
+    """CRPS evaluation"""
     data = split_window_per_neuron_flow(data_spike, data_smooth, important_index,sigma,
                                         window_size, target_neuron, 
                                         time_resolution, filler,get_last_inf=False)
@@ -136,6 +156,7 @@ def evaluate_crps(encoder, flow_net, linear_transform,
     return crps
     
 def calculate_CRPS(observed_sample, generated_sample):
+    """CRPS helper"""
     crps_list = []
     for i in range(generated_sample.shape[0]):
         first_term = torch.abs(generated_sample[i] - observed_sample).mean()
@@ -156,7 +177,7 @@ def evaluate_likelihood_spike(encoder, flow_net, linear_transform,
                                 sigma=0.1,
                                 smooth=True):
     
-    # True data likelihood
+    """likelihood evaluation using true data applied on learned pdf"""
     data = split_window_per_neuron_flow(data_spike, data_smooth, important_index, sigma,
                                         window_size, target_neuron, 
                                         time_resolution, filler,get_last_inf=False)

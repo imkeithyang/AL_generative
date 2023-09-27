@@ -25,10 +25,11 @@ def train_att_flow(n_epochs,
           sigma,
           smooth=True):
     
+    # paths to save different things
     savepath, plot_savepath, net_savepath = paths
     
+    # validation metric
     val_loss_list = []
-    
     val_crps_list = []
     val_isi_dist_list = []
     val_spike_dist_list = []
@@ -40,6 +41,8 @@ def train_att_flow(n_epochs,
     val_crps = 0
     val_isi_dist_mean = 0
     val_spike_dist_mean = 0
+    
+    # Training Loops
     for i in range(n_epochs):
         
         for batch_idx, data in enumerate(train_loader):
@@ -55,6 +58,7 @@ def train_att_flow(n_epochs,
                 data_input = window_smooth
             else:
                 data_input = window_spike
+                
             rnn_out, hidden,betai = encoder(data_input,stimuli) # get latent representation
             conditional = torch.cat([rnn_out, stimuli, time], -1) # NF condition on context, neuron, and stimuli
             loss_flow = -flow_net.log_probs(target, 
@@ -71,6 +75,8 @@ def train_att_flow(n_epochs,
                 np.round(val_spike_dist_mean, 3),
                 best_epoch
             ))
+            
+        # validation
         if (i+1)%1 == 0:
             flow_loss = validate_att_flow(encoder, flow_net, linear_transform,
                                                  val_loader, device,smooth=smooth)
@@ -83,11 +89,13 @@ def train_att_flow(n_epochs,
                 
             val_loss_list.append(flow_loss)
 
+            
             with torch.no_grad():
                 data_gen = []
                 temp_crps_list = []
                 temp_isi_dist_list = []
                 temp_spike_dist_list = []
+                # spike train genereation for all stimuli
                 for stimuli, d_spike, d_smooth in zip(q, data_spike, data_smooth):
                     spike_train = generate_spike_train_att_flow(encoder, flow_net,linear_transform,
                                                                 device,
@@ -104,6 +112,8 @@ def train_att_flow(n_epochs,
                                                                 filler=filler,
                                                                 smooth=smooth,
                                                                 num_of_spike_train=1)
+                    
+                    # evaluating the generated spike trains using crps
                     data_gen.append(spike_train[0])
                     crps = evaluate_crps(encoder, flow_net,linear_transform,
                                   device,
@@ -119,6 +129,8 @@ def train_att_flow(n_epochs,
                                   scaling_factor=scaling_factor,
                                   smooth=smooth,
                                   num_samples=2000)
+                    
+                    # evaluating the generated spike trains using spike distances
                     isi_dist, spike_dist = evaluate_spike_distance(d_spike, 
                                                                    spike_train, 
                                                                    target_neuron, 
@@ -137,6 +149,7 @@ def train_att_flow(n_epochs,
                 val_spike_dist_list.append(temp_spike_dist_list)
                 val_crps_list.append(temp_crps_list)
                 
+            # some plotting
             if (i+1)%(n_epochs/5) == 0:
                 plot_spike_compare(data_spike, 
                                    data_gen, 
@@ -167,6 +180,11 @@ def generate_spike_train_att_flow(encoder, flow_net, linear_transform,
                                          sigma,
                                          data_spike, data_smooth, 
                                          scaling_factor = 1, filler=-1, smooth=True, num_of_spike_train = 1):
+    """
+    Generate spike trains given stimuli
+    Returns:
+        spike_train_list: a list of generated spike trains
+    """
     data_smooth = data_smooth.unsqueeze(0)
     data_spike = data_spike.unsqueeze(0)
     time_scale = 10**time_resolution
@@ -237,7 +255,7 @@ def validate_att_flow(encoder, flow_net, linear_transform, val_loader, device, s
                 data_input = window_spike
             rnn_out, hidden,_ = encoder(data_input, stimuli)
             conditional = torch.cat([rnn_out, stimuli, time], -1)
-            loss_flow = -flow_net.log_probs(target, conditional).mean() # train normalizing flow
+            loss_flow = -flow_net.log_probs(target, conditional).mean()
             val_loss_flow += loss_flow.detach().cpu().numpy()
         val_loss_flow /= (batch_idx + 1)
     return val_loss_flow
