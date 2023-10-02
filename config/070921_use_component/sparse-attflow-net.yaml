@@ -1,0 +1,22 @@
+batch_size: 128
+att_encoder:
+  lr: 0.00001
+  net: 
+    rnn: lstm
+    num_rnn_layers: 2
+    num_rnn_hidden: 10
+    attention: True
+    embedding_size: 10
+    window_size: 20
+    context_dense_size: 10
+    num_stimuli_condition: 11
+    sparse: True
+flow_net:
+  lr: 0.00001
+  net:
+    num_blocks: 6
+    num_hidden: 256
+    num_inputs: Null
+    s_act: 'tanh'
+    t_act: 'softplus'
+    num_cond_inputs: Null

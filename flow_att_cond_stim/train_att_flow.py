@@ -150,14 +150,14 @@ def train_att_flow(n_epochs,
                 val_crps_list.append(temp_crps_list)
                 
             # some plotting
-            if (i+1)%(n_epochs/5) == 0:
-                plot_spike_compare(data_spike, 
-                                   data_gen, 
-                                   important_index,
-                                   plot_savepath, 
-                                   i+1,
-                                   q, 
-                                   target=target_neuron)
+            #if (i+1)%(n_epochs/5) == 0:
+                #plot_spike_compare(data_spike, 
+                #                   data_gen, 
+                #                   important_index,
+                #                   plot_savepath, 
+                #                   i+1,
+                #                   q, 
+                #                   target=target_neuron)
                 
         encoder.train()
         flow_net.train()

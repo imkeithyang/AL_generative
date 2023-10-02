@@ -1,0 +1,26 @@
+data:
+  path: /hpc/group/tarokhlab/hy190/data/AL/ALdata/070924_1_cleaned.csv
+  window_size: 50
+  time_resolution: 3
+  sigma: 0.005
+  filler: -0.0001
+  target: [11]
+  batch_size: 32
+  step_size: 1
+deepAR:
+  lr: 0.0001
+  net: 
+    rnn: lstm
+    num_rnn_layers: 1
+    num_rnn_hidden: 8
+    num_dense_layers: 2
+    num_dense_hidden: 8
+    num_outputs: 1
+    neurons_conditional: 1
+    stimuli_conditional: 0
+head: 070921
+n_runs: 5
+n_tries: 1
+n_epochs: 100
+optimizer:
+  name: AdamW
