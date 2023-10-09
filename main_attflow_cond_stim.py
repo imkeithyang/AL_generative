@@ -92,7 +92,7 @@ for target in target_list:
         scaling_factor  = initialized["scaling_factor"]
         sigma           = initialized["sigma"]
         important_index = initialized["important_index"]
-        
+        stim_name       = initialized["stim_name"]
         for stimuli, d_spike, d_smooth in zip(q, data_spike, data_smooth):
             spike_train = generate_spike_train_att_flow(encoder_best, flow_net_best,linear_transform_best, 
                                                         device,
@@ -187,14 +187,14 @@ for target in target_list:
                         q, 
                         target=target_neuron,
                         data_likelihood_list = data_likelihood_list,
-                        gen_likelihood_list = gen_likelihood_list)
+                        gen_likelihood_list = gen_likelihood_list, stim_name=stim_name)
         
         spike_length = data_spike[0].shape[0]
         plot_betai_compare(time_list, betai_list, spike_sync_list, spike_length, time_resolution,
-                   savepath, "test", q_temp, target)
+                   savepath, "test", q_temp, target, stim_name=stim_name)
         plot_spatiotemporal_compare(time_list, betai_list, alphai_list, window_size, 
                                     spike_length, time_resolution,
-                   savepath, "test", q_temp, target)
+                   savepath, "test", q_temp, target, stim_name=stim_name)
         
         test_stats = {"test_stats":test_stats,"crps_list":crps_list,
                   "data_emp":np.array(data_emp), "data_gen":np.array(data_gen),

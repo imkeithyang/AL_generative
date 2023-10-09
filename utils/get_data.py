@@ -162,6 +162,7 @@ def split_all_stimuli_flow(df, neurons, target,
     
     df[["label", "stimuli"]].drop_duplicates()
     df["label_stim"] = df["label"].astype(str) + "-" + df["stimuli"].str.upper()
+    stim_name = df["label_stim"].unique()
     all_stimuli_count = df.value_counts("label_stim").to_dict()
     all_stimuli_count = dict(sorted(all_stimuli_count.items()))
     num_stimuli = len(all_stimuli_count) - 12 if use_component else len(all_stimuli_count)
@@ -298,7 +299,7 @@ def split_all_stimuli_flow(df, neurons, target,
     
     generative_comparison = [data_concat_window_spike, data_concat_window_smooth, data_concat_stimuli]
             
-    return  training_data, validating_data, testing_data, generative_comparison, val_generative_comparison
+    return  training_data, validating_data, testing_data, generative_comparison, val_generative_comparison, stim_name
 
 
 def load_data_flow(path, 
@@ -332,7 +333,7 @@ def load_data_flow(path,
                                        filler,
                                        pre_stim,
                                        use_component=use_component)
-    training_data, validating_data, testing_data, val_generative_comparison, generative_comparison = extracted
+    training_data, validating_data, testing_data, val_generative_comparison, generative_comparison, stim_name = extracted
     
     ar_window_spike = training_data[0]
     ar_window_smooth = training_data[1]
@@ -382,4 +383,4 @@ def load_data_flow(path,
     data_concat_smooth = generative_comparison[1]
     data_concat_stimuli = generative_comparison[2]
     
-    return ar_train_loader, ar_val_loader, ar_test_loader, val_data_concat_has_spike, val_data_concat_smooth, val_data_concat_stimuli, data_concat_has_spike, data_concat_smooth, data_concat_stimuli
+    return ar_train_loader, ar_val_loader, ar_test_loader, val_data_concat_has_spike, val_data_concat_smooth, val_data_concat_stimuli, data_concat_has_spike, data_concat_smooth, data_concat_stimuli, stim_name

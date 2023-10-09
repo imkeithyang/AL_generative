@@ -23,6 +23,7 @@ def train_att_flow(n_epochs,
           important_index,
           scaling_factor,
           sigma,
+          stim_name,
           smooth=True):
     
     # paths to save different things
@@ -204,8 +205,11 @@ def generate_spike_train_att_flow(encoder, flow_net, linear_transform,
             conditional = torch.cat([rnn_out, q, spike_time], -1)
             interarrival_sample = -1
             while interarrival_sample<0 or torch.isnan(interarrival_sample):
-                interarrival_samples = flow_net.sample(cond_inputs=conditional.repeat(100,1))/scaling_factor
-                interarrival_sample = interarrival_samples[interarrival_samples > 0][0]
+                interarrival_samples = flow_net.sample(cond_inputs=conditional.repeat(1000,1))/scaling_factor
+                try:
+                    interarrival_sample = interarrival_samples[interarrival_samples > 0][0]
+                except IndexError:
+                    continue
             # add to last spike time
             
             spike_time += interarrival_sample

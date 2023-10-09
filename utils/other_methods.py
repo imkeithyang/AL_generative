@@ -2,21 +2,7 @@
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from scipy.io import loadmat
-from get_data import *
-
-stimuli = ['0-BEA', '0-BOL', '0-Ctl', '1-DatExt', '0-FAR', '0-GER', '0-ISO', '0-LIN', 
-           '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-MAL', '0-MYR', '0-NER', 
-           '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous']		
-
-mixture_dict = {"1-P9":["0-BEA","0-BOL","0-MAL","0-MYR","0-LIN","0-NER","0-GER","0-ISO","0-FAR"],
-                "1-P5":["0-BEA","0-BOL","0-LIN","0-NER","0-GER"],
-                "1-P4":["0-BEA","0-BOL","0-LIN","0-NER"],
-                "1-P3":["0-BEA","0-BOL","0-LIN"],
-                "0-M6":["0-MAL","0-MYR","0-NER","0-GER","0-ISO","0-FAR"],
-                "0-M5":["0-MAL","0-MYR","0-GER","0-ISO","0-FAR"],
-                "0-M4":["0-MAL","0-MYR","0-ISO","0-FAR"],
-                "0-M3":["0-MAL","0-ISO","0-FAR"],
-                "0-M2":["0-BEA","0-BOL"]}
+import numpy as np
 
 
 def exponential_smoothing_spike(data_concat, time_resolution, tau=0.05):

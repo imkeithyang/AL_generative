@@ -41,7 +41,7 @@ def setup_att_flow(cfg, important_index, device,run):
     
     
     # load data
-    train_loader, val_loader, test_loader, val_data_spike, val_data_smooth, val_q, data_spike, data_smooth, q = load_data_flow(**data_params)
+    train_loader, val_loader, test_loader, val_data_spike, val_data_smooth, val_q, data_spike, data_smooth, q, stim_name = load_data_flow(**data_params)
     if important_index is None:
         important_index = list(range(data_spike[0].shape[1]))
         
@@ -54,6 +54,7 @@ def setup_att_flow(cfg, important_index, device,run):
     encoder_params['net']["attention"] = True \
         if "attention" in encoder_params['net'] and encoder_params['net']["attention"] \
         else False
+    encoder_params['net']['num_stimuli_condition'] = stimuli_dim
     flow_params["net"]["num_inputs"]      = 1
     flow_params["net"]["num_cond_inputs"] =  encoder_params["net"]["context_dense_size"] + stimuli_dim + time_dim\
         if encoder_params["net"]["attention"] \
@@ -109,6 +110,7 @@ def setup_att_flow(cfg, important_index, device,run):
         "target_neuron"   : target,
         "important_index" : important_index,
         "scaling_factor"  : scaling_factor,
-        "sigma"           : sigma
+        "sigma"           : sigma,
+        "stim_name"       : stim_name,
     }
     return initialized, test_loader, data_spike, data_smooth, q

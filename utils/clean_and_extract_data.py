@@ -32,7 +32,7 @@ def data_preprocessing(path, moth, behavioral_labels, duration, num_pulses=5, pr
                     spike_train_data[key] = []
                 spike_train_neuron = data[key]
                 
-                left = info[stimuli][i]-0.2
+                left = info[stimuli][i]
                 right = info[stimuli][i]+duration
                 if pre_stim:
                     left = 0
@@ -67,4 +67,3 @@ if __name__ == "__main__":
     for m in moth_names:
         print(args.pre_stim)
         data_preprocessing(args.path, m, behavioral_labels, duration, pre_stim = args.pre_stim)
-

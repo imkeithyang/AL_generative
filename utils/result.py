@@ -169,7 +169,9 @@ def plot_result_bar(crps_all,
     
     fig.suptitle("Neuron {} Goodness of Fit".format(target))
     
-def analyze_betai(yaml_filepath, cond=False):
+def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
+                 '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-Mal', '0-Myr', '0-Ner', 
+                 '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous']):
     with open(yaml_filepath, 'r') as f:
         cfg = yaml.load(f, yaml.SafeLoader)
         
@@ -194,10 +196,6 @@ def analyze_betai(yaml_filepath, cond=False):
             
         with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:
             test_stats_run = pickle.load(f)
-        
-        q = ['0-Bea', '0-Bol', '0-Ctl', '1-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
-                 '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-Mal', '0-Myr', '0-Ner', 
-                 '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous']
         
         betai_list = test_stats_run["betai_list"]
         time_list = test_stats_run["time_list"]
