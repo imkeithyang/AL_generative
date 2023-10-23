@@ -90,7 +90,7 @@ def argMaxPreStim(mothNum):
 
     dir = os.getcwd()
     #load data from csv file
-    loadPath =  os.path.join(dir,f'ALdata/timestamps_{mothNum}.csv')
+    loadPath =  os.path.join(dir,f'data/ALdata/timestamps_{mothNum}.csv')
 
     df = pd.read_csv(loadPath,header=0)
 
@@ -107,7 +107,7 @@ def loadData(mothName):
 
     dir = os.getcwd()
     #load data from csv file
-    loadPath =  os.path.join(dir,f'ALdata/{mothName}_pre_stim_cleaned.csv')
+    loadPath =  os.path.join(dir,f'data/ALdata/{mothName}_pre_stim_cleaned.csv')
 
     df = pd.read_csv(loadPath, header = 0)
     
@@ -233,7 +233,8 @@ def formulateDataset(totalDf):
     for dfRow in totalDf:
         lInput = [0] + dfRow
         burstIndicator,finalNumBursts,finalBurstRanges,finalBurstSurprises,totalTime = detect_bursts.detectBursts(lInput,0,math.inf,2)
-        sampleDataset.append(renderParams(lInput,finalBurstRanges,finalBurstSurprises,burstIndicator,finalNumBursts,totalTime))
+        if finalBurstRanges != []:
+            sampleDataset.append(renderParams(lInput,finalBurstRanges,finalBurstSurprises,burstIndicator,finalNumBursts,totalTime))
     return sampleDataset
 
 
@@ -255,7 +256,7 @@ sampleDataset = formulateDataset(totalDf)
 
 
 #save sampleDataset
-with open('sampleDataset.pkl', 'wb') as f:
+with open('sampleDataset_refined.pkl', 'wb') as f:
     pickle.dump(sampleDataset, f)
 
 

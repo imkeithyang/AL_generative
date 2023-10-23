@@ -35,8 +35,8 @@ def data_preprocessing(path, moth, behavioral_labels, duration, num_pulses=5, pr
                 left = info[stimuli][i]
                 right = info[stimuli][i]+duration
                 if pre_stim:
-                    left = 0
                     right = info[stimuli][i]
+                    left = right - duration
                 if len(np.where(spike_train_neuron>left)[0]) == 0 or len(np.where(spike_train_neuron>right)[0]) == 0:
                     spikes = []
                 else:
@@ -54,7 +54,8 @@ def data_preprocessing(path, moth, behavioral_labels, duration, num_pulses=5, pr
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Data Preprocessing', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--path', type = str, default = "/hpc/group/tarokhlab/hy190/data/AL/ALdata",
+    #"/hpc/group/tarokhlab/pc266/data/AL/ALdata"
+    parser.add_argument('--path', type = str, default = "data/ALdata",
                         help='data path')
     parser.add_argument('--pre_stim', dest='pre_stim', action='store_true', 
                         help='process pre stimulation or not')
@@ -62,7 +63,7 @@ if __name__ == "__main__":
     
     moth_names = ['070906', '070913', '070921', '070922', '070924_1', '070924_2', '071002']
     behavioral_labels = ['P9','P9_Ten','P9_Hund','P9_TenThous','P5','P4','P3', 'DatExt']
-    duration = 0.999
+    duration = 1.999
     fs = 1e4
     for m in moth_names:
         print(args.pre_stim)
