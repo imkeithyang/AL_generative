@@ -9,3 +9,13 @@
 
 
 3. Put cluster result labels back to data and check if features of datapoints with different labels also differ by some patterns
+
+
+
+now to do list:
+
+collect deleted samples (with no burst) and plot them in barplot (probably they belong to the LN class -- regular firing) -- surprise should also be related to bursts, so if theres no burst theres no surprise plottable
+check whether samples in the same neuron always have either all have burst or no burst at all
+no need to use argMaxPreStim
+
+we have 23 stimuli and 5 run for each stimuli (for each neuron for each moth num)

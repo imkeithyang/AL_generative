@@ -47,7 +47,7 @@ def poissonSurprise(numISI,meanFiringRate,interval):
 
 
 
-def potentialBursts(timeStamps,maxNumBurstSpikes,numISI):
+def potentialBursts(timeStamps,maxNumBurstSpikes,numISI,p=0.5):
     #numSpikes considered as an np multidimensional array
     numSpikes = timeStamps.shape[0] - 1
     #return last row value of timeStamps
@@ -70,7 +70,7 @@ def potentialBursts(timeStamps,maxNumBurstSpikes,numISI):
     i = 0
     while i < numSpikes - 1:
         burstEndIndex = i
-        if intervals[i] < 0.5*meanISI and intervals[i+1] < 0.5*meanISI:
+        if intervals[i] < p*meanISI and intervals[i+1] < p*meanISI:
             if i == 0:
                 burstStartIndex = 0
             else:
