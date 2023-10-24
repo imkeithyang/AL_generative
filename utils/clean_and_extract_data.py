@@ -63,7 +63,7 @@ if __name__ == "__main__":
     
     moth_names = ['070906', '070913', '070921', '070922', '070924_1', '070924_2', '071002']
     behavioral_labels = ['P9','P9_Ten','P9_Hund','P9_TenThous','P5','P4','P3', 'DatExt']
-    duration = 1.999
+    duration = 0.999
     fs = 1e4
     for m in moth_names:
         print(args.pre_stim)
