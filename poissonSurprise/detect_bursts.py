@@ -34,7 +34,9 @@ import importlib
 
 #Poisson Surprise Function
 def poissonSurprise(numISI,meanFiringRate,interval):
-    P = exp(-meanFiringRate*interval)*nsum(lambda i:(meanFiringRate*interval)**i/fac(i),[numISI,inf])
+    P = exp(-meanFiringRate*interval)*\
+        nsum(lambda i:(meanFiringRate*interval)**i/fac(i),\
+             [numISI,inf])
     #mitigate math domain error as we currently haven't found why it occasionally gives zero
     try:
         S = -float(decimal.Decimal(nstr(P)).log10())
