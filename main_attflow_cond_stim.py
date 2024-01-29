@@ -17,7 +17,15 @@ else:
 yaml_filepath = args.filename
 with open(yaml_filepath, 'r') as f:
     cfg = yaml.load(f, yaml.SafeLoader)
-
+    
+# Check if training needs neuron type
+if "PN" in yaml_filepath:
+    neuron_type = "PN"
+elif "LN" in yaml_filepath:
+    neuron_type = "LN"
+else:
+    neuron_type = None
+    
 # Different Attention/Flow Net structure from the unconditional attflow
 net_yamlfilepath = Path(yaml_filepath).parent.parent
 net_yamlfilepath = os.path.join(net_yamlfilepath, "sparse-attflow-net.yaml") if "sparse" in yaml_filepath else \
@@ -62,11 +70,14 @@ for target in target_list:
         spike_distance_list = []
         
         smooth=True
-        savepath, plot_savepath, net_savepath,exp = format_directory(cfg_temp, run)
+        savepath, plot_savepath, net_savepath,exp = format_directory(cfg_temp, run, neuron_type)
         make_directory(exp, savepath, plot_savepath, net_savepath)
+        
+            
         initialized, test_loader, data_spike, data_smooth, q = setup_att_flow(cfg_temp, 
                                                                             important_index, 
-                                                                            device, run=run)
+                                                                            device, run=run,
+                                                                            neuron_type=neuron_type)
         initialized["paths"] = (savepath, plot_savepath, net_savepath)
         initialized["device"] = device
         initialized["smooth"] = smooth
@@ -108,7 +119,7 @@ for target in target_list:
                                                         scaling_factor=scaling_factor,
                                                         filler=filler, 
                                                         smooth=smooth,
-                                                        num_of_spike_train=100)
+                                                        num_of_spike_train=5)
             spike_train_list.append(spike_train)
             data_emp.append(d_spike)
             data_gen.append(spike_train[0])

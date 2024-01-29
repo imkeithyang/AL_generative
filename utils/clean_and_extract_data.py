@@ -17,6 +17,10 @@ def data_preprocessing(path, moth, behavioral_labels, duration, num_pulses=5, pr
     spike_train_data = {}
     spike_train_data.update({'label': []})
     spike_train_data.update({'stimuli': []})
+    #import json
+    #with open('../unlabeled_pred.json') as f:
+    #    d = json.load(f)
+    #neurontype = d[moth]
     for stimuli in info.columns:
         if stimuli in behavioral_labels:
             target = 1
@@ -24,7 +28,7 @@ def data_preprocessing(path, moth, behavioral_labels, duration, num_pulses=5, pr
             target = 0
         for i in range(num_pulses):
             left = info[stimuli][i]
-            right = info[stimuli][i]+duration
+            right = info[stimuli][i]-duration
             spike_train_data['label'].append(target)
             spike_train_data['stimuli'].append(stimuli)
             for key in data.keys():
@@ -32,11 +36,11 @@ def data_preprocessing(path, moth, behavioral_labels, duration, num_pulses=5, pr
                     spike_train_data[key] = []
                 spike_train_neuron = data[key]
                 
-                left = info[stimuli][i]
+                left = info[stimuli][i]-0.2
                 right = info[stimuli][i]+duration
                 if pre_stim:
-                    left = 0
                     right = info[stimuli][i]
+                    left = right - 1.999
                 if len(np.where(spike_train_neuron>left)[0]) == 0 or len(np.where(spike_train_neuron>right)[0]) == 0:
                     spikes = []
                 else:

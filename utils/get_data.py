@@ -5,7 +5,7 @@ import torch
 import itertools
 
 
-def read_moth(path, time_resolution=3):
+def read_moth(path, time_resolution=3, neuron_type=None, pred_label=None):
     """read moth data given path
 
     Args:
@@ -15,15 +15,20 @@ def read_moth(path, time_resolution=3):
     Returns:
         _type_: return the moth data in dataframe, and the neurons list
     """
+    splitted = path.split("/")[-1].split("_")
+    moth = splitted[0] + ("_{}".format(splitted[1]) if splitted[1][1]!='c' else '')
     data_moth = pd.read_csv(path, index_col=0)
     neurons = list(data_moth.keys())[2:]
+    neurons_out = set([])
     for i in range(data_moth.shape[0]):
         for j in neurons:
-            data_moth.at[i,j] = np.round(json.loads(data_moth.iloc[i][j]), time_resolution)
-    return data_moth, neurons
+            if pred_label[moth][j]['true'] == neuron_type or neuron_type is None:
+                data_moth.at[i,j] = np.round(json.loads(data_moth.iloc[i][j]), time_resolution)
+                neurons_out.add(j)
+    return data_moth, list(neurons_out)
 
 
-def make_spiketrain(df, stimuli, run, neurons, time_resolution, min_spike = 0, pre_stim = False):
+def make_spiketrain(df, stimuli, run, neurons, time_resolution, min_spike = 0, pre_stim = False, tot_time=1.2):
     """_summary_
 
     Args:
@@ -39,7 +44,7 @@ def make_spiketrain(df, stimuli, run, neurons, time_resolution, min_spike = 0, p
     """
     
     time_scale = 10**time_resolution
-    tot_timestep = int(time_scale*1.2)
+    tot_timestep = int(time_scale*tot_time)
     data_concat = np.zeros((tot_timestep,len(neurons)))
     data_stimuli = df[df["label_stim"] == stimuli]
     for j, neuron in enumerate(neurons):
@@ -312,12 +317,13 @@ def load_data_flow(path,
                    minimum_spike_count=0, 
                    batch_size=128, seed=0, sigma=0.1, 
                    scaling_factor=1, filler=-1,
-                   use_component=False):
+                   use_component=False,
+                   neuron_type=None):
     torch.manual_seed(seed)
     np.random.seed(seed)
     pre_stim = ("pre_stimuli" in path)
-    
-    data_moth, neurons = read_moth(path, time_resolution)
+    pred = json.load(open("unlabeled_pred.json",'r'))
+    data_moth, neurons = read_moth(path, time_resolution, neuron_type=neuron_type, pred_label=pred)
     if stimuli_index is None:
         stimuli_index = range(0,23)
     extracted = split_all_stimuli_flow(data_moth, 

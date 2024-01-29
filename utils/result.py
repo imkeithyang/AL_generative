@@ -10,7 +10,6 @@ import pandas as pd
 import torch
 import pandas as pd
 import numpy as np
-from scipy.signal import correlate, correlation_lags
 import json
 from .get_data import read_moth
 

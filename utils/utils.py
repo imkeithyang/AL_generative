@@ -11,7 +11,7 @@ def get_parser():
         "-f",
         "--file",
         dest="filename",
-        default="/hpc/home/hy190/AL_generative/config/121114/sparse-attflow/sparse-attflow-0.yaml",
+        default="/hpc/home/hy190/AL_generative/configPN/070921/sparse-attflow/sparse-attflow-0.yaml",
         help="experiment definition file",
         metavar="FILE",
         required=False,
@@ -35,9 +35,9 @@ def get_parser():
     return parser
 
 
-def format_directory(cfg, run, stimuli=None):
+def format_directory(cfg, run, stimuli=None, neuron_type=None):
     exp = cfg["data"]["path"].split("/")[-1]
-    exp = "result/" + exp[0:-4]
+    exp = "result/" + exp[0:-4] + (neuron_type if neuron_type else "")
     if cfg["data"]["use_component"]:
         exp += "_use_comp"
     if "pre_stimuli" in cfg["data"]["path"]:
