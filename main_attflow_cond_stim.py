@@ -25,7 +25,7 @@ elif "LN" in yaml_filepath:
     neuron_type = "LN"
 else:
     neuron_type = None
-    
+print(neuron_type)
 # Different Attention/Flow Net structure from the unconditional attflow
 net_yamlfilepath = Path(yaml_filepath).parent.parent
 net_yamlfilepath = os.path.join(net_yamlfilepath, "sparse-attflow-net.yaml") if "sparse" in yaml_filepath else \
@@ -70,14 +70,15 @@ for target in target_list:
         spike_distance_list = []
         
         smooth=True
-        savepath, plot_savepath, net_savepath,exp = format_directory(cfg_temp, run, neuron_type)
-        make_directory(exp, savepath, plot_savepath, net_savepath)
-        
-            
-        initialized, test_loader, data_spike, data_smooth, q = setup_att_flow(cfg_temp, 
+        initialized, test_loader, data_spike, data_smooth, q,neurons = setup_att_flow(cfg_temp, 
                                                                             important_index, 
                                                                             device, run=run,
                                                                             neuron_type=neuron_type)
+        savepath, plot_savepath, net_savepath,exp = format_directory(cfg_temp, run, 
+                                                                     neuron_type=neuron_type,
+                                                                     neuron=neurons[cfg_temp['data']['target']])
+        make_directory(exp, savepath, plot_savepath, net_savepath)
+        
         initialized["paths"] = (savepath, plot_savepath, net_savepath)
         initialized["device"] = device
         initialized["smooth"] = smooth

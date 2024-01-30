@@ -11,7 +11,7 @@ def get_parser():
         "-f",
         "--file",
         dest="filename",
-        default="/hpc/home/hy190/AL_generative/configPN/070921/sparse-attflow/sparse-attflow-0.yaml",
+        default="/hpc/home/hy190/AL_generative/configLN/070921/sparse-attflow/sparse-attflow-13.yaml",
         help="experiment definition file",
         metavar="FILE",
         required=False,
@@ -35,32 +35,28 @@ def get_parser():
     return parser
 
 
-def format_directory(cfg, run, stimuli=None, neuron_type=None):
+def format_directory(cfg, run, stimuli=None, neuron_type=None, neuron=None):
     exp = cfg["data"]["path"].split("/")[-1]
-    exp = "result/" + exp[0:-4] + (neuron_type if neuron_type else "")
+    exp = "result/" + exp[0:-4]  + (neuron_type if neuron_type else "")
     if cfg["data"]["use_component"]:
         exp += "_use_comp"
     if "pre_stimuli" in cfg["data"]["path"]:
         exp += "_pre_stimuli"
         
     if "deepAR" in cfg:
-        target = cfg["data"]["target"]
-        exp += "/deepAR/deepAR-{}/s_{}".format(target, stimuli)
+        exp += "/deepAR/deepAR-{}/s_{}".format(neuron, stimuli)
         return None, None, None, exp
     
     if "rnn_encoder" in cfg:
-        target = cfg["data"]["target"]
-        exp += "/rnnflow/rnnflow-{}".format(target)
+        exp += "/rnnflow/rnnflow-{}".format(neuron)
     elif "att_encoder" in cfg:
         if "attention" in cfg["att_encoder"]["net"] and cfg["att_encoder"]["net"]["attention"]:
-            target = cfg["data"]["target"]
             if "sparse" in cfg["att_encoder"]["net"] and cfg["att_encoder"]["net"]["sparse"]:
-                exp += "/sparse-attflow/sparse-attflow-{}".format(target)
+                exp += "/sparse-attflow/sparse-attflow-{}".format(neuron)
             else:
-                exp += "/attflow/attflow-{}".format(target)
+                exp += "/attflow/attflow-{}".format(neuron)
         elif "fullattention" in cfg["att_encoder"]["net"] and cfg["att_encoder"]["net"]["fullattention"]:
-            target = cfg["data"]["target"]
-            exp += "/attflow/attflow-{}".format(target)
+            exp += "/attflow/attflow-{}".format(neuron)
     else:
         exp += "/vaeflow"
     

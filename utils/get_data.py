@@ -16,7 +16,7 @@ def read_moth(path, time_resolution=3, neuron_type=None, pred_label=None):
         _type_: return the moth data in dataframe, and the neurons list
     """
     splitted = path.split("/")[-1].split("_")
-    moth = splitted[0] + ("_{}".format(splitted[1]) if splitted[1][1]!='c' else '')
+    moth = splitted[0] + ("_{}".format(splitted[1]) if splitted[1][0]!='c' else '')
     data_moth = pd.read_csv(path, index_col=0)
     neurons = list(data_moth.keys())[2:]
     neurons_out = set([])
@@ -326,6 +326,8 @@ def load_data_flow(path,
     data_moth, neurons = read_moth(path, time_resolution, neuron_type=neuron_type, pred_label=pred)
     if stimuli_index is None:
         stimuli_index = range(0,23)
+    if target > len(neurons):
+        raise IndexError("Target index is greater than the number of neurons")
     extracted = split_all_stimuli_flow(data_moth, 
                                        neurons, 
                                        target,
@@ -388,5 +390,5 @@ def load_data_flow(path,
     data_concat_has_spike = generative_comparison[0] 
     data_concat_smooth = generative_comparison[1]
     data_concat_stimuli = generative_comparison[2]
-    
-    return ar_train_loader, ar_val_loader, ar_test_loader, val_data_concat_has_spike, val_data_concat_smooth, val_data_concat_stimuli, data_concat_has_spike, data_concat_smooth, data_concat_stimuli, stim_name
+    neurons.sort()
+    return ar_train_loader, ar_val_loader, ar_test_loader, val_data_concat_has_spike, val_data_concat_smooth, val_data_concat_stimuli, data_concat_has_spike, data_concat_smooth, data_concat_stimuli, stim_name, neurons

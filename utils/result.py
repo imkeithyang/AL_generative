@@ -179,17 +179,27 @@ def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-
     cfg_temp["data"]["target"] = cfg_temp["data"]["target"][0]
     n_runs = cfg_temp["n_runs"]
     time_scale = 10**cfg_temp["data"]["time_resolution"]
-    
-    _, neurons = read_moth(cfg_temp["data"]["path"])
-    
+    if "PN" in yaml_filepath:
+        neuron_type = "PN"
+    elif "LN" in yaml_filepath:
+        neuron_type = "LN"
+    else:
+        neuron_type = None
+    pred = json.load(open("unlabeled_pred.json",'r'))
+    _, neurons = read_moth(cfg_temp["data"]["path"], neuron_type=neuron_type, pred_label=pred)
+    neurons.sort()
     betai_matrix_stack = []
     ensemble_stack = []
     pre_stim_ensemble_stack = []
     stim_ensemble_stack = []
     post_stim_ensemble_stack = []
     for run in range(n_runs):
+        if cfg_temp["data"]["target"] >= len(neurons):
+            return
         if cond:
-            savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run)
+            savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run,
+                                                                          neuron_type=neuron_type,
+                                                                          neuron=neurons[cfg_temp["data"]["target"]])
         else:
             savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, 0)
             

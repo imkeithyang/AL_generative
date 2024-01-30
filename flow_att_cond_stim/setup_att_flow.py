@@ -42,7 +42,7 @@ def setup_att_flow(cfg, important_index,device,run,neuron_type):
     
     
     # load data
-    train_loader, val_loader, test_loader, val_data_spike, val_data_smooth, val_q, data_spike, data_smooth, q, stim_name = load_data_flow(**data_params)
+    train_loader, val_loader, test_loader, val_data_spike, val_data_smooth, val_q, data_spike, data_smooth, q, stim_name, neurons = load_data_flow(**data_params)
     if important_index is None:
         important_index = list(range(data_spike[0].shape[1]))
         
@@ -114,4 +114,4 @@ def setup_att_flow(cfg, important_index,device,run,neuron_type):
         "sigma"           : sigma,
         "stim_name"       : stim_name,
     }
-    return initialized, test_loader, data_spike, data_smooth, q
+    return initialized, test_loader, data_spike, data_smooth, q, neurons
