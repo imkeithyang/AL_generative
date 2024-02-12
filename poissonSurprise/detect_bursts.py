@@ -170,8 +170,8 @@ def finalBursts(cropBurstRanges,cropBurstSurprises,cropNumBursts,minSurprise,num
 
 
 
-def detectBursts(timeStamps,minSurprise,maxNumBurstSpikes,numISI):
-    burstRanges,burstSurprises,intervals,totalTime,meanFreq,numSpikes = potentialBursts(timeStamps,maxNumBurstSpikes,numISI)
+def detectBursts(timeStamps,minSurprise,maxNumBurstSpikes,numISI,p = 0.5):
+    burstRanges,burstSurprises,intervals,totalTime,meanFreq,numSpikes = potentialBursts(timeStamps,maxNumBurstSpikes,numISI,p)
 
     cropBurstRanges,cropBurstSurprises,cropNumBursts = cropBursts(burstRanges,burstSurprises,intervals,meanFreq)
     
