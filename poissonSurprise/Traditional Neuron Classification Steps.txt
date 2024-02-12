@@ -1,0 +1,26 @@
+1.find stimuli with longest pre_stim time for each subject
+	timestamp for every neuron for the stimuli is made into an input 
+	timestamp --> detect burst -- 9 parameters
+
+		--> (460,9) matrix
+
+2. Clustering + Reduction of Dimensionality
+	pick out subject 070921 to see its involvement
+
+
+3. Put cluster result labels back to data and check if features of datapoints with different labels also differ by some patterns
+
+
+
+now to do list:
+
+Utils/get_data.py make_spiketrain() --> turn timestamp into vector (1 represents spike)
+Utils/plot.py plot_spike()
+
+plot spike train (0,1,no burst)
+
+Variational auto encoder (VAE) --> extract hidden output (with reduced dimensionality, but not directly to 2 -- we can reduce that later for visualization) and do clustering with it --> draw barplot
+
+
+we have 23 stimuli and 5 run for each stimuli (for each neuron for each moth num)
+
