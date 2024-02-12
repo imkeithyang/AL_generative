@@ -31,7 +31,7 @@ for target in target_list:
     cfg_temp["data"]["target"] = target
     
     important_threshold = cfg_temp["important_threshold"] if "important_threshold" in cfg_temp else 1.5
-    ar_yaml_filepath = "AL_generative/config/deepAR/deepAR-{}.yaml".format(target) if os.getcwd().split("/")[-1] == "pc266" else \
+    ar_yaml_filepath = "AL_generative/config/deepAR/deepAR-{}.yaml".format(target) if os.getcwd().split("/")[-1] == "hy190" else \
         "config/deepAR/deepAR-{}.yaml".format(target)
     with open(ar_yaml_filepath, 'r') as f:
         cfg_deepAR = yaml.load(f, yaml.SafeLoader)
@@ -54,7 +54,7 @@ for target in target_list:
             important_index = None
             # check if we have done previous preprocessing or not
             savepath, plot_savepath, net_savepath, exp = format_directory(cfg_deepAR, None, stimuli_index)
-            important_index_file = os.path.join("/hpc/home/pc266/AL_generative",exp,'important_index_deepAR.pkl')
+            important_index_file = os.path.join("/hpc/home/hy190/AL_generative",exp,'important_index_deepAR.pkl')
             if os.path.isfile(important_index_file) and os.path.getsize(important_index_file) > 0:
                 with open(important_index_file, 'rb') as f:
                     important_dict = pickle.load(f)

@@ -11,7 +11,7 @@ def get_parser():
         "-f",
         "--file",
         dest="filename",
-        default="/hpc/home/pc266/AL_generative/configLN/070921/sparse-attflow/sparse-attflow-13.yaml",
+        default="/hpc/home/hy190/AL_generative/configLN/070921/sparse-attflow/sparse-attflow-13.yaml",
         help="experiment definition file",
         metavar="FILE",
         required=False,

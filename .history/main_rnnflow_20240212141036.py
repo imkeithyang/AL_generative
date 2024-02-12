@@ -31,7 +31,7 @@ for target in target_list:
     cfg_temp["data"]["target"] = target
     
     important_threshold = cfg_temp["important_threshold"] if "important_threshold" in cfg_temp else 1.5
-    ar_yaml_filepath = "AL_generative/config/deepAR/deepAR-{}.yaml".format(target) if os.getcwd().split("/")[-1] == "pc266" else \
+    ar_yaml_filepath = "AL_generative/config/deepAR/deepAR-{}.yaml".format(target) if os.getcwd().split("/")[-1] == "hy190" else \
         "config/deepAR/deepAR-{}.yaml".format(target)
     with open(ar_yaml_filepath, 'r') as f:
         cfg_deepAR = yaml.load(f, yaml.SafeLoader)

@@ -36,7 +36,7 @@ def analyze_deepAR(yaml_filepath, verbose=True):
             important_index = None
             # check if we have done previous preprocessing or not
             savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, None, stimuli_index)
-            important_index_file = os.path.join("/hpc/home/pc266/AL_generative",exp,'important_index_deepAR.pkl')
+            important_index_file = os.path.join("/hpc/home/hy190/AL_generative",exp,'important_index_deepAR.pkl')
             if os.path.isfile(important_index_file) and os.path.getsize(important_index_file) > 0:
                 with open(important_index_file, 'rb') as f:
                     important_dict = pickle.load(f)

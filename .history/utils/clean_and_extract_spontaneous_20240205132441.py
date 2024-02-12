@@ -54,7 +54,7 @@ def data_preprocessing(path, moth, behavioral_labels, duration, num_pulses=1, pr
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description='Data Preprocessing', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--path', type = str, default = "/hpc/group/tarokhlab/pc266/data/AL/ALdata",
+    parser.add_argument('--path', type = str, default = "/hpc/group/tarokhlab/hy190/data/AL/ALdata",
                         help='data path')
     parser.add_argument('--pre_stim', dest='pre_stim', action='store_true', 
                         help='process pre stimulation or not')
