@@ -38,7 +38,7 @@ def get_parser():
 def format_directory(cfg, run, stimuli=None, neuron_type=None, neuron=None):
     exp = cfg["data"]["path"].split("/")[-1]
     exp = "result/" + exp[0:-4]  + (neuron_type if neuron_type else "")
-    if cfg["data"]["use_component"]:
+    if "use_component" in cfg["data"] and cfg["data"]["use_component"]:
         exp += "_use_comp"
     if "pre_stimuli" in cfg["data"]["path"]:
         exp += "_pre_stimuli"

@@ -5,7 +5,7 @@ import torch
 import itertools
 
 
-def read_moth(path, time_resolution=3, neuron_type=None, pred_label=None):
+def read_moth(path, time_resolution=3, neuron_type=None, pred_label=None, addtype=False):
     """read moth data given path
 
     Args:
@@ -24,8 +24,10 @@ def read_moth(path, time_resolution=3, neuron_type=None, pred_label=None):
         for j in neurons:
             if pred_label[moth][j]['true'] == neuron_type or neuron_type is None:
                 data_moth.at[i,j] = np.round(json.loads(data_moth.iloc[i][j]), time_resolution)
-                neurons_out.add(j)
-    return data_moth, list(neurons_out)
+                neurons_out.add(j if not addtype else j+pred_label[moth][j]['true'])
+    neurons_out = list(neurons_out)
+    neurons_out.sort()
+    return data_moth, neurons_out
 
 
 def make_spiketrain(df, stimuli, run, neurons, time_resolution, min_spike = 0, pre_stim = False, tot_time=1.2):
@@ -390,5 +392,4 @@ def load_data_flow(path,
     data_concat_has_spike = generative_comparison[0] 
     data_concat_smooth = generative_comparison[1]
     data_concat_stimuli = generative_comparison[2]
-    neurons.sort()
     return ar_train_loader, ar_val_loader, ar_test_loader, val_data_concat_has_spike, val_data_concat_smooth, val_data_concat_stimuli, data_concat_has_spike, data_concat_smooth, data_concat_stimuli, stim_name, neurons

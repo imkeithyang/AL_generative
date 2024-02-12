@@ -27,6 +27,7 @@ def analyze_deepAR(yaml_filepath, verbose=True):
         target_list = [cfg["data"]["target"]]
 
     n_runs = cfg["n_runs"]
+    
     important_threshold = cfg["important_threshold"] if "important_threshold" in cfg else 1.5
     important_index_list = []
     for target in target_list:
@@ -66,21 +67,38 @@ def analyze_result(yaml_filepath, verbose=True, cond=False):
     n_runs = cfg["n_runs"]
     count_all_target_reject = []
     
+    if "PN" in yaml_filepath:
+        neuron_type = "PN"
+    elif "LN" in yaml_filepath:
+        neuron_type = "LN"
+    else:
+        neuron_type = None
+    
     for target in target_list:
         cfg_temp = copy.deepcopy(cfg)
         count_reject = np.array([])
         isi_stack = []
         spike_stack = []
         crps_stack = []
+        pred = json.load(open("unlabeled_pred.json",'r'))
+        _, neurons = read_moth(cfg_temp["data"]["path"], neuron_type=None, pred_label=pred, addtype=True)
+        neuron=neurons[target]
         for run in range(n_runs):
             cfg_temp["data"]["target"] = target
             if cond:
-                savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run)
+                savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, 
+                                                                              neuron_type=neuron_type,
+                                                                              neuron=target if not neuron_type else neuron[:-2])
             else:
                 savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, stimuli=0)
-            with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:
-                test_stats_run = pickle.load(f)
-                
+            try:
+                with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:
+                    test_stats_run = pickle.load(f)
+            except FileNotFoundError:
+                scratch_path = "/scratch/hy190/AL_generative/"
+                with open(os.path.join(scratch_path,savepath,'test_stats.pkl'), 'rb') as f:
+                    test_stats_run = pickle.load(f)
+                    
             data_likelihood_list = test_stats_run["data_likelihood_list"]
             gen_likelihood_list = test_stats_run["gen_likelihood_list"]
             crps_list = test_stats_run["crps_list"]
@@ -129,7 +147,7 @@ def analyze_result(yaml_filepath, verbose=True, cond=False):
     fla_spike_stack = spike_stack.reshape(spike_stack.shape[0]*spike_stack.shape[1],-1)
     del test_stats_run
     torch.cuda.empty_cache()
-    return fla_crps_stack, fla_isi_stack, fla_spike_stack
+    return fla_crps_stack, fla_isi_stack, fla_spike_stack, neurons[target]
 
 
 def plot_result_bar(crps_all,
@@ -137,40 +155,49 @@ def plot_result_bar(crps_all,
                     spike_all,
                     target,method):
     method_list = []
-    for met in method:
-        method_list += [met]*len(np.array(crps_all[0]).flatten())
-    stimuli_list = stimuli*len(crps_all[0])*len(crps_all)
+    totlen = 0
+    for i,met in enumerate(method):
+        totlen += len(np.array(crps_all[i]).flatten())
+        method_list += [met]*len(np.array(crps_all[i]).flatten())
+    stimuli_list = stimuli*int(totlen/len(stimuli))
     crps_dict = {"CRPS": np.concatenate([np.array(crps_all[i]).flatten() for i in range(len(crps_all))]),
                  "Stimuli": stimuli_list,
                  "Method": method_list}
     method_list = []
-    for met in method:
-        method_list += [met]*len(np.array(isi_all[0]).flatten())
-    stimuli_list = stimuli*len(isi_all[0])*len(isi_all)
+    totlen = 0
+    for i,met in enumerate(method):
+        totlen += len(np.array(isi_all[i]).flatten())
+        method_list += [met]*len(np.array(isi_all[i]).flatten())
+    stimuli_list = stimuli*int(totlen/len(stimuli))
     isi_dict = {"ISI Distance": np.concatenate([np.array(isi_all[i]).flatten() for i in range(len(isi_all))]),
                  "Stimuli": stimuli_list,
                  "Method": method_list}
     method_list = []
-    for met in method:
-        method_list += [met]*len(np.array(spike_all[0]).flatten())
-    stimuli_list = stimuli*len(spike_all[0])*len(spike_all)
+    totlen = 0
+    for i,met in enumerate(method):
+        totlen += len(np.array(isi_all[i]).flatten())
+        method_list += [met]*len(np.array(spike_all[i]).flatten())
+    stimuli_list = stimuli*int(totlen/len(stimuli))
     spike_dict = {"SPIKE Distance": np.concatenate([np.array(spike_all[i]).flatten() for i in range(len(spike_all))]),
                  "Stimuli": stimuli_list,
                  "Method": method_list}
     
     fig, axes = plt.subplots(figsize=(24,5), ncols=3, nrows=1)
-    sns.barplot(data = pd.DataFrame(crps_dict), x="Stimuli", y="CRPS", hue="Method", ax=axes[0],ci=68)
+    sns.barplot(data = pd.DataFrame(crps_dict), x="Stimuli", y="CRPS", hue="Method", ax=axes[0],errorbar=('ci', 68))
+    axes[0].set_yticks(axes[0].get_yticks()); axes[0].set_xticks(axes[0].get_xticks())
     axes[0].set_xticklabels(axes[0].get_xticklabels(), rotation=60, ha='right')
-    sns.barplot(data = pd.DataFrame(isi_dict), x="Stimuli", y="ISI Distance", hue="Method", ax=axes[1],ci=68)
+    sns.barplot(data = pd.DataFrame(isi_dict), x="Stimuli", y="ISI Distance", hue="Method", ax=axes[1],errorbar=('ci', 68))
+    axes[1].set_yticks(axes[1].get_yticks()); axes[1].set_xticks(axes[1].get_xticks())
     axes[1].set_xticklabels(axes[1].get_xticklabels(), rotation=60, ha='right')
-    sns.barplot(data = pd.DataFrame(spike_dict), x="Stimuli", y="SPIKE Distance", hue="Method", ax=axes[2],ci=68)
+    sns.barplot(data = pd.DataFrame(spike_dict), x="Stimuli", y="SPIKE Distance", hue="Method", ax=axes[2],errorbar=('ci', 68))
+    axes[2].set_yticks(axes[2].get_yticks()); axes[2].set_xticks(axes[2].get_xticks())
     axes[2].set_xticklabels(axes[2].get_xticklabels(), rotation=60, ha='right')
     
     fig.suptitle("Neuron {} Goodness of Fit".format(target))
     
 def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
                  '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-Mal', '0-Myr', '0-Ner', 
-                 '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous']):
+                 '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous'], addtype=False):
     with open(yaml_filepath, 'r') as f:
         cfg = yaml.load(f, yaml.SafeLoader)
         
@@ -186,7 +213,7 @@ def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-
     else:
         neuron_type = None
     pred = json.load(open("unlabeled_pred.json",'r'))
-    _, neurons = read_moth(cfg_temp["data"]["path"], neuron_type=neuron_type, pred_label=pred)
+    _, neurons = read_moth(cfg_temp["data"]["path"], neuron_type=neuron_type, pred_label=pred, addtype=addtype)
     neurons.sort()
     betai_matrix_stack = []
     ensemble_stack = []
@@ -194,12 +221,17 @@ def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-
     stim_ensemble_stack = []
     post_stim_ensemble_stack = []
     for run in range(n_runs):
+        n_temp = neurons[cfg_temp["data"]["target"]][:-2] if addtype else neurons[cfg_temp["data"]["target"]]
+        if neuron_type == "PN" and neurons[cfg_temp["data"]["target"]] not in set([
+                                                                                   "S1U3","S2U1","S2U2",
+                                                                                   "S3U4","S3U3"]):
+            continue
         if cfg_temp["data"]["target"] >= len(neurons):
             return
         if cond:
             savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run,
                                                                           neuron_type=neuron_type,
-                                                                          neuron=neurons[cfg_temp["data"]["target"]])
+                                                                          neuron=n_temp)
         else:
             savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, 0)
             
@@ -215,7 +247,10 @@ def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-
         pre_stim_ensemble_stack.append(pre_stim_ensemble_list)
         stim_ensemble_stack.append(stim_ensemble_list)
         post_stim_ensemble_stack.append(post_stim_ensemble_list)
-    del test_stats_run
+    try:
+        del test_stats_run
+    except:
+        pass
     torch.cuda.empty_cache()
     return betai_matrix_stack, pre_stim_ensemble_stack, stim_ensemble_stack, post_stim_ensemble_stack, neurons
 
