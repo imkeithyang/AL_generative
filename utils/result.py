@@ -215,6 +215,8 @@ def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-
     pred = json.load(open("unlabeled_pred.json",'r'))
     _, neurons = read_moth(cfg_temp["data"]["path"], neuron_type=neuron_type, pred_label=pred, addtype=addtype)
     neurons.sort()
+    target = cfg_temp["data"]["target"]
+    neuron=neurons[target]
     betai_matrix_stack = []
     ensemble_stack = []
     pre_stim_ensemble_stack = []
@@ -229,14 +231,18 @@ def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-
         if cfg_temp["data"]["target"] >= len(neurons):
             return
         if cond:
-            savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run,
-                                                                          neuron_type=neuron_type,
-                                                                          neuron=n_temp)
+                savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, 
+                                                                              neuron_type=neuron_type,
+                                                                              neuron=target if not neuron_type else neuron[:-2])
         else:
-            savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, 0)
-            
-        with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:
-            test_stats_run = pickle.load(f)
+                savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, stimuli=0)
+        try:
+            with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:
+                    test_stats_run = pickle.load(f)
+        except FileNotFoundError:
+            scratch_path = "/scratch/hy190/AL_generative/"
+            with open(os.path.join(scratch_path,savepath,'test_stats.pkl'), 'rb') as f:
+                test_stats_run = pickle.load(f)
         
         betai_list = test_stats_run["betai_list"]
         time_list = test_stats_run["time_list"]
