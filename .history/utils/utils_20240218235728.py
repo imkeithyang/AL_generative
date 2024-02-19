@@ -8,14 +8,6 @@ def get_parser():
         description=__doc__, formatter_class=ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        "-p",
-        "--path",
-        dest="path",
-        default="/hpc/home/pc266/data/ALdata/070921_cleaned.csv",
-        help="dataset path",
-        required=False,
-    )
-    parser.add_argument(
         "-f",
         "--file",
         dest="filename",

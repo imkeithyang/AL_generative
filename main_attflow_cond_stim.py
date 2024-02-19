@@ -17,7 +17,13 @@ else:
 yaml_filepath = args.filename
 with open(yaml_filepath, 'r') as f:
     cfg = yaml.load(f, yaml.SafeLoader)
-    
+
+
+print("cfg:{}".format(cfg['data']['path']))
+
+if args.path:
+    cfg['data']['path'] = args.path
+
 # Check if training needs neuron type
 if "PN" in yaml_filepath:
     neuron_type = "PN"
@@ -25,7 +31,7 @@ elif "LN" in yaml_filepath:
     neuron_type = "LN"
 else:
     neuron_type = None
-print(neuron_type)
+print(f"neuron type: {neuron_type}")
 # Different Attention/Flow Net structure from the unconditional attflow
 net_yamlfilepath = Path(yaml_filepath).parent.parent
 net_yamlfilepath = os.path.join(net_yamlfilepath, "sparse-attflow-net.yaml") if "sparse" in yaml_filepath else \
@@ -48,7 +54,7 @@ else:
     target_list = [cfg["data"]["target"]]
     
 for target in target_list:
-    print("****************** Taining Target {} ******************".format(target))
+    print("****************** Training Target {} ******************".format(target))
     cfg_temp = copy.deepcopy(cfg)
     cfg_temp["data"]["target"] = target
     
