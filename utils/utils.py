@@ -11,7 +11,7 @@ def get_parser():
         "-p",
         "--path",
         dest="path",
-        default="/hpc/home/pc266/data/ALdata/070921_cleaned.csv",
+        default=None,
         help="dataset path",
         required=False,
     )
