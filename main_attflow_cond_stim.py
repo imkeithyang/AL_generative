@@ -17,7 +17,22 @@ else:
 yaml_filepath = args.filename
 with open(yaml_filepath, 'r') as f:
     cfg = yaml.load(f, yaml.SafeLoader)
-    
+
+
+print("cfg:{}".format(cfg['data']['path']))
+
+
+
+csv_filename = "../data/ALdata/"+args.path.split("/")[-1]
+#read csv file and obtain its head to get the neuron names
+csv_file = pd.read_csv(csv_filename)
+neuron_names = list(csv_file.columns)[3:]
+
+
+
+if args.path:
+    cfg['data']['path'] = args.path
+
 # Check if training needs neuron type
 if "PN" in yaml_filepath:
     neuron_type = "PN"
@@ -25,7 +40,7 @@ elif "LN" in yaml_filepath:
     neuron_type = "LN"
 else:
     neuron_type = None
-print(neuron_type)
+print(f"neuron type: {neuron_type}")
 # Different Attention/Flow Net structure from the unconditional attflow
 net_yamlfilepath = Path(yaml_filepath).parent.parent
 net_yamlfilepath = os.path.join(net_yamlfilepath, "sparse-attflow-net.yaml") if "sparse" in yaml_filepath else \
@@ -48,7 +63,7 @@ else:
     target_list = [cfg["data"]["target"]]
     
 for target in target_list:
-    print("****************** Taining Target {} ******************".format(target))
+    print("****************** Training Target {} ******************".format(target))
     cfg_temp = copy.deepcopy(cfg)
     cfg_temp["data"]["target"] = target
     
@@ -105,6 +120,10 @@ for target in target_list:
         sigma           = initialized["sigma"]
         important_index = initialized["important_index"]
         stim_name       = initialized["stim_name"]
+
+        #neuron_names manual setup
+        # neuron_names = [S1U1,S2U1,S2U2,S3U1,S3U2,S4U1,S4U2,S4U3,S1U2,S1U3,S1U4,S3U3,S3U4,S4U4]
+
         for stimuli, d_spike, d_smooth in zip(q, data_spike, data_smooth):
             spike_train = generate_spike_train_att_flow(encoder_best, flow_net_best,linear_transform_best, 
                                                         device,
@@ -203,10 +222,10 @@ for target in target_list:
         
         spike_length = data_spike[0].shape[0]
         plot_betai_compare(time_list, betai_list, spike_sync_list, spike_length, time_resolution,
-                   savepath, "test", q_temp, target, stim_name=stim_name)
+                   savepath, "test", q_temp, target, stim_name=stim_name,neuron_names = neuron_names)
         plot_spatiotemporal_compare(time_list, betai_list, alphai_list, window_size, 
                                     spike_length, time_resolution,
-                   savepath, "test", q_temp, target, stim_name=stim_name)
+                   savepath, "test", q_temp, target, stim_name=stim_name,neuron_names = neuron_names)
         
         test_stats = {"test_stats":test_stats,"crps_list":crps_list,
                   "data_emp":np.array(data_emp), "data_gen":np.array(data_gen),

@@ -8,14 +8,6 @@ def get_parser():
         description=__doc__, formatter_class=ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        "-p",
-        "--path",
-        dest="path",
-        default=None,
-        help="dataset path",
-        required=False,
-    )
-    parser.add_argument(
         "-f",
         "--file",
         dest="filename",

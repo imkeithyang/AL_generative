@@ -8,18 +8,10 @@ def get_parser():
         description=__doc__, formatter_class=ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        "-p",
-        "--path",
-        dest="path",
-        default=None,
-        help="dataset path",
-        required=False,
-    )
-    parser.add_argument(
         "-f",
         "--file",
         dest="filename",
-        default="/hpc/home/pc266/AL_generative/configLN/070921/sparse-attflow/sparse-attflow-13.yaml",
+        default="/hpc/home/hy190/AL_generative/configLN/070921/sparse-attflow/sparse-attflow-13.yaml",
         help="experiment definition file",
         metavar="FILE",
         required=False,
@@ -74,9 +66,9 @@ def format_directory(cfg, run, stimuli=None, neuron_type=None, neuron=None):
     savepath = os.path.join(exp, "run_{}".format(run))
     plot_savepath = os.path.join(savepath, "by_stimuli/s_{}/plot".format(stimuli)) if stimuli is not None \
         else os.path.join(savepath, "plot")
-    net_savepath = os.path.join("/scratch/pc266/AL_generative/", 
+    net_savepath = os.path.join("/scratch/hy190/AL_generative/", 
                                 savepath, "by_stimuli/s_{}/net".format(stimuli)) if stimuli is not None else \
-                   os.path.join("/scratch/pc266/AL_generative/", 
+                   os.path.join("/scratch/hy190/AL_generative/", 
                                 savepath, "net")
                                     
     return savepath, plot_savepath, net_savepath, exp
