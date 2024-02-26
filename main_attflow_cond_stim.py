@@ -21,6 +21,15 @@ with open(yaml_filepath, 'r') as f:
 
 print("cfg:{}".format(cfg['data']['path']))
 
+
+
+csv_filename = "../data/ALdata/"+args.path.split("/")[-1]
+#read csv file and obtain its head to get the neuron names
+csv_file = pd.read_csv(csv_filename)
+neuron_names = list(csv_file.columns)[3:]
+
+
+
 if args.path:
     cfg['data']['path'] = args.path
 
@@ -111,7 +120,9 @@ for target in target_list:
         sigma           = initialized["sigma"]
         important_index = initialized["important_index"]
         stim_name       = initialized["stim_name"]
-        neuron_names = []
+
+        #neuron_names manual setup
+        # neuron_names = [S1U1,S2U1,S2U2,S3U1,S3U2,S4U1,S4U2,S4U3,S1U2,S1U3,S1U4,S3U3,S3U4,S4U4]
 
         for stimuli, d_spike, d_smooth in zip(q, data_spike, data_smooth):
             spike_train = generate_spike_train_att_flow(encoder_best, flow_net_best,linear_transform_best, 
