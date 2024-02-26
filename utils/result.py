@@ -224,16 +224,12 @@ def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-
     post_stim_ensemble_stack = []
     for run in range(n_runs):
         n_temp = neurons[cfg_temp["data"]["target"]][:-2] if addtype else neurons[cfg_temp["data"]["target"]]
-        if neuron_type == "PN" and neurons[cfg_temp["data"]["target"]] not in set([
-                                                                                   "S1U3","S2U1","S2U2",
-                                                                                   "S3U4","S3U3"]):
-            continue
         if cfg_temp["data"]["target"] >= len(neurons):
             return
         if cond:
                 savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, 
                                                                               neuron_type=neuron_type,
-                                                                              neuron=target if not neuron_type else neuron[:-2])
+                                                                              neuron=n_temp)
         else:
                 savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, stimuli=0)
         try:
