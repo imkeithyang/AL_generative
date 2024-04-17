@@ -8,7 +8,7 @@ from torch import distributions as d
 #from transformer import *
 
 
-def setup_att_flow(cfg, important_index,device,run,neuron_type):
+def setup_att_flow(cfg, important_index,device,run,neuron_type, seed = 42):
     """_summary_
     Args:
         cfg: Configuration
@@ -27,9 +27,11 @@ def setup_att_flow(cfg, important_index,device,run,neuron_type):
     # A bunuch of configurations
     data_params                    = cfg["data"]
     data_params["important_index"] = important_index
-    data_params["seed"]            = run
+    # data_params["seed"]            = run
+    data_params["seed"]            = seed
     data_params["test_run"]        = run
     data_params["neuron_type"]     = neuron_type
+    data_params["shuffle"] = cfg["shuffle"]
     time_resolution                = data_params["time_resolution"]
     filler                         = data_params["filler"]
     window_size                    = data_params["window_size"]
@@ -39,6 +41,7 @@ def setup_att_flow(cfg, important_index,device,run,neuron_type):
     optim_params                   = cfg["optimizer"]
     encoder_params                 = cfg["att_encoder"]
     flow_params                    = cfg["flow_net"]
+
     
     
     # load data

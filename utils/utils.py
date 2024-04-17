@@ -16,6 +16,14 @@ def get_parser():
         required=False,
     )
     parser.add_argument(
+        "-shuffle",
+        "--shuffle",
+        dest="shuffle",
+        default=False,
+        help = "whether shuffle",
+        required = False,
+    )
+    parser.add_argument(
         "-f",
         "--file",
         dest="filename",
@@ -31,6 +39,12 @@ def get_parser():
         default="cuda:0",
         help="experiment specified device",
         required=False,
+    )
+    parser.add_argument(
+        "-shuffle",
+        default=False,
+        help = "whether shuffle"
+        required=False
     )
     parser.add_argument(
         "-trainflow",
