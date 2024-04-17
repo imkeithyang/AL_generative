@@ -78,10 +78,15 @@ def gaussian_smoothing_spike(data_concat, time_resolution, sigma):
 
 def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_index,sigma,
                             window_size=3, target_neuron=0, time_resolution=3, filler=-1,
-                            get_last_inf = False):
+                            get_last_inf = False,shuffle = False):
     """split the spikes into windows and the corresponding label (interarrival spikes)"""
     time_scale = 10**time_resolution
+    if shuffle == True:
+        #permute the target_neuron_row of data_concat
+        #check before and after of data_concat
+        np.random.shuffle(data_concat[:,target_neuron])
     spike_time_unscaled = np.nonzero(data_concat[:,target_neuron])[0]
+
     # get inter-arrival time of spike
     
     # smoothing spikes with gaussian kernel
@@ -155,7 +160,7 @@ def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_inde
 
 def split_all_stimuli_flow(df, neurons, target,
                            time_resolution,stimuli_index, important_index, test_run, window_size=3, 
-                           min_spike = 0, sigma=0.001, filler=-1,pre_stim=False, use_component=False):
+                           min_spike = 0, sigma=0.001, filler=-1,pre_stim=False, use_component=False,shuffle = False):
     
     # split all stimuli's data, there are multiple runs involved as well
     components =["0-BEA","0-BOL","0-MAL","0-MYR","0-LIN","0-NER","0-GER","0-ISO","0-FAR", "0-DATEXT", "0-CTL"]
@@ -245,7 +250,7 @@ def split_all_stimuli_flow(df, neurons, target,
             extracted_data = split_window_per_neuron_flow(data_concat_has_spike, 
                                                           data_concat_smooth,
                                                           important_index,sigma,
-                                                          window_size, target, time_resolution, filler)
+                                                          window_size, target, time_resolution, filler,shuffle = shuffle)
             ar_target_interarrival, ar_windowed_spike, ar_windowed_smooth, time_conditional  = extracted_data
             if run == val_run:
                 print('')
@@ -332,7 +337,7 @@ def load_data_flow(path,
                    batch_size=128, seed=0, sigma=0.1, 
                    scaling_factor=1, filler=-1,
                    use_component=False,
-                   neuron_type=None):
+                   neuron_type=None,shuffle = False):
     torch.manual_seed(seed)
     np.random.seed(seed)
     pre_stim = ("pre_stimuli" in path)
@@ -364,7 +369,7 @@ def load_data_flow(path,
                                        sigma,
                                        filler,
                                        pre_stim,
-                                       use_component=use_component)
+                                       use_component=use_component,shuffle = shuffle)
     training_data, validating_data, testing_data, val_generative_comparison, generative_comparison, stim_name = extracted
     
     ar_window_spike = training_data[0]
