@@ -17,13 +17,18 @@ def read_moth(path, time_resolution=3, neuron_type=None, pred_label=None, addtyp
     """
     splitted = path.split("/")[-1].split("_")
     moth = splitted[0] + ("_{}".format(splitted[1]) if splitted[1][0]!='c' else '')
-    data_moth = pd.read_csv(path, index_col=0)
+    data_moth = pd.read_csv(path, index_col=None).drop(columns=["Unnamed: 0"])
     neurons = list(data_moth.keys())[2:]
     neurons_out = set([])
     for i in range(data_moth.shape[0]):
         for j in neurons:
-            if pred_label[moth][j]['true'] == neuron_type or neuron_type is None:
-                data_moth.at[i,j] = np.round(json.loads(data_moth.iloc[i][j]), time_resolution)
+            if (pred_label is not None and pred_label[moth][j]['true'] == neuron_type) \
+                or neuron_type is None:
+                try:
+                    data_moth.at[i,j] = np.round(json.loads(data_moth.iloc[i][j]), time_resolution)
+                except TypeError:
+                    if np.isnan(data_moth.iloc[i][j]):
+                        data_moth.at[i,j] = []
                 neurons_out.add(j if not addtype else j+pred_label[moth][j]['true'])
     neurons_out = list(neurons_out)
     neurons_out.sort()
@@ -50,7 +55,7 @@ def make_spiketrain(df, stimuli, run, neurons, time_resolution, min_spike = 0, p
     data_concat = np.zeros((tot_timestep,len(neurons)))
     data_stimuli = df[df["label_stim"] == stimuli]
     for j, neuron in enumerate(neurons):
-        data_concat[(time_scale*data_stimuli.iloc[run][neuron]).astype(int),j] = 1
+        data_concat[np.array((time_scale*data_stimuli.iloc[run][neuron])).astype(int),j] = 1
         
     return data_concat, neurons
 
@@ -73,13 +78,23 @@ def gaussian_smoothing_spike(data_concat, time_resolution, sigma):
 
 def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_index,sigma,
                             window_size=3, target_neuron=0, time_resolution=3, filler=-1,
+<<<<<<< HEAD
                             get_last_inf = False, shuffle = False, seed = 42):
     """split the spikes into windows and the corresponding label (interarrival spikes)"""
     time_scale = 10**time_resolution
     if shuffle == True:
         np.random.seed(seed)
+=======
+                            get_last_inf = False,shuffle = False):
+    """split the spikes into windows and the corresponding label (interarrival spikes)"""
+    time_scale = 10**time_resolution
+    if shuffle == True:
+        #permute the target_neuron_row of data_concat
+        #check before and after of data_concat
+>>>>>>> fc28f2a926e3308007912ebc583a01e271061bb3
         np.random.shuffle(data_concat[:,target_neuron])
     spike_time_unscaled = np.nonzero(data_concat[:,target_neuron])[0]
+
     # get inter-arrival time of spike
     
     # smoothing spikes with gaussian kernel
@@ -153,7 +168,11 @@ def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_inde
 
 def split_all_stimuli_flow(df, neurons, target,
                            time_resolution,stimuli_index, important_index, test_run, window_size=3, 
+<<<<<<< HEAD
                            min_spike = 0, sigma=0.001, filler=-1,pre_stim=False, use_component=False, shuffle = False, seed = 42):
+=======
+                           min_spike = 0, sigma=0.001, filler=-1,pre_stim=False, use_component=False,shuffle = False):
+>>>>>>> fc28f2a926e3308007912ebc583a01e271061bb3
     
     # split all stimuli's data, there are multiple runs involved as well
     components =["0-BEA","0-BOL","0-MAL","0-MYR","0-LIN","0-NER","0-GER","0-ISO","0-FAR", "0-DATEXT", "0-CTL"]
@@ -172,11 +191,13 @@ def split_all_stimuli_flow(df, neurons, target,
     
     df[["label", "stimuli"]].drop_duplicates()
     df["label_stim"] = df["label"].astype(str) + "-" + df["stimuli"].str.upper()
-    stim_name = df["label_stim"].unique()
     all_stimuli_count = df.value_counts("label_stim").to_dict()
     all_stimuli_count = dict(sorted(all_stimuli_count.items()))
+    keys = list(all_stimuli_count.keys())
+    #for key in keys:
+        #if "DAT+" in key or "BENZALDEHYE" in key:
+        #    all_stimuli_count.pop(key)
     num_stimuli = len(all_stimuli_count) - 12 if use_component else len(all_stimuli_count)
-        
     val_run = test_run - 1
     
     ar_stimuli = np.array([])
@@ -205,11 +226,10 @@ def split_all_stimuli_flow(df, neurons, target,
     data_concat_window_spike = []
     data_concat_window_smooth = []
     data_concat_target = []
-    
+    stim_name = []
     for s_index, s in enumerate(all_stimuli_count):
         if s_index not in set(list(stimuli_index) if isinstance(stimuli_index, range) else [stimuli_index]):
             continue
-        
         # One hot encoding with components
         if use_component and s in mixture_components:
             comp = mixture_components[s]
@@ -218,10 +238,14 @@ def split_all_stimuli_flow(df, neurons, target,
                 s_index.append(np.where(np.array(components) == c)[0])
         elif use_component and s in set(components):
             s_index = np.where(np.array(components) == s)[0]
-
+        # special case to deal with incomplete dataset
+        
+        stim_name.append(s)
         for run in range(all_stimuli_count[s]):
-            if val_run < 0:
+            if val_run < 0 or val_run > all_stimuli_count[s]-1:
                 val_run = all_stimuli_count[s]-1
+            if test_run > all_stimuli_count[s]-1:
+                test_run = 0
             data_concat_has_spike, neurons_has_spike = make_spiketrain(df, 
                                                                        s,
                                                                        run,
@@ -238,9 +262,15 @@ def split_all_stimuli_flow(df, neurons, target,
             extracted_data = split_window_per_neuron_flow(data_concat_has_spike, 
                                                           data_concat_smooth,
                                                           important_index,sigma,
+<<<<<<< HEAD
                                                           window_size, target, time_resolution, filler,shuffle = shuffle, seed = seed)
+=======
+                                                          window_size, target, time_resolution, filler,shuffle = shuffle)
+>>>>>>> fc28f2a926e3308007912ebc583a01e271061bb3
             ar_target_interarrival, ar_windowed_spike, ar_windowed_smooth, time_conditional  = extracted_data
-            
+            if run == val_run:
+                print('')
+                pass
             # splitting the cases for training validating and testing dataset
             # For 5 runs, 3 run will be used as training, 1 run for validating, 1 run for testing
             # This is done in a rotational bases so every run could be used as a testing run
@@ -258,7 +288,7 @@ def split_all_stimuli_flow(df, neurons, target,
                 stimuli_rep[:,s_index] = 1
                 ar_stimuli = np.vstack([ar_stimuli, 
                                     stimuli_rep]) if ar_stimuli.size else stimuli_rep
-                
+            
             elif ar_target_interarrival.size and run == val_run: 
                 ar_val_window_spike = np.vstack([ar_val_window_spike, 
                                     ar_windowed_smooth]) if ar_val_window_spike.size else ar_windowed_smooth
@@ -309,7 +339,7 @@ def split_all_stimuli_flow(df, neurons, target,
     
     generative_comparison = [data_concat_window_spike, data_concat_window_smooth, data_concat_stimuli]
             
-    return  training_data, validating_data, testing_data, generative_comparison, val_generative_comparison, stim_name
+    return  training_data, validating_data, testing_data, val_generative_comparison, generative_comparison, stim_name
 
 
 def load_data_flow(path, 
@@ -323,13 +353,27 @@ def load_data_flow(path,
                    batch_size=128, seed=42, sigma=0.1, 
                    scaling_factor=1, filler=-1,
                    use_component=False,
+<<<<<<< HEAD
                    neuron_type=None,
                    shuffle = False):
+=======
+                   neuron_type=None,shuffle = False):
+>>>>>>> fc28f2a926e3308007912ebc583a01e271061bb3
     torch.manual_seed(seed)
     np.random.seed(seed)
     pre_stim = ("pre_stimuli" in path)
-    pred = json.load(open("unlabeled_pred.json",'r'))
+    try:
+        pred = json.load(open("unlabeled_pred.json",'r'))
+        if "011124" in path or "12142022" in path:
+            pred = None
+    except:
+        pred = None
     data_moth, neurons = read_moth(path, time_resolution, neuron_type=neuron_type, pred_label=pred)
+    try:
+        data_moth = data_moth.drop("Channel13d", axis=1)
+        neurons.pop()
+    except:
+        pass
     if stimuli_index is None:
         stimuli_index = range(0,23)
     if target > len(neurons):
@@ -346,7 +390,11 @@ def load_data_flow(path,
                                        sigma,
                                        filler,
                                        pre_stim,
+<<<<<<< HEAD
                                        use_component=use_component, shuffle = shuffle, seed = seed)
+=======
+                                       use_component=use_component,shuffle = shuffle)
+>>>>>>> fc28f2a926e3308007912ebc583a01e271061bb3
     training_data, validating_data, testing_data, val_generative_comparison, generative_comparison, stim_name = extracted
     
     ar_window_spike = training_data[0]

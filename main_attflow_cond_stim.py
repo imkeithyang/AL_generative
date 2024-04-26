@@ -25,12 +25,6 @@ print("cfg:{}".format(cfg['data']['path']))
 
 
 
-csv_filename = "../data/ALdata/"+args.path.split("/")[-1]
-#read csv file and obtain its head to get the neuron names
-csv_file = pd.read_csv(csv_filename)
-neuron_names = list(csv_file.columns)[3:]
-
-
 
 if args.path:
     cfg['data']['path'] = args.path
@@ -227,11 +221,11 @@ for target in target_list:
                         gen_likelihood_list = gen_likelihood_list, stim_name=stim_name)
         
         spike_length = data_spike[0].shape[0]
-        plot_betai_compare(time_list, betai_list, spike_sync_list, spike_length, time_resolution,
-                   savepath, "test", q_temp, target, stim_name=stim_name,neuron_names = neuron_names)
-        plot_spatiotemporal_compare(time_list, betai_list, alphai_list, window_size, 
-                                    spike_length, time_resolution,
-                   savepath, "test", q_temp, target, stim_name=stim_name,neuron_names = neuron_names)
+        #plot_betai_compare(time_list, betai_list, spike_sync_list, spike_length, time_resolution,
+        #           savepath, "test", q_temp, target, stim_name=stim_name,neuron_names=neurons)
+        #plot_spatiotemporal_compare(time_list, betai_list, alphai_list, window_size, 
+        #                            spike_length, time_resolution,
+        #           savepath, "test", q_temp, target, stim_name=stim_name,neuron_names=neurons)
         
         test_stats = {"test_stats":test_stats,"crps_list":crps_list,
                   "data_emp":np.array(data_emp), "data_gen":np.array(data_gen),
