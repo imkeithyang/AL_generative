@@ -96,14 +96,16 @@ def plot_betai_compare(time_list, betai_list, spike_sync_list, spike_length,time
                 t_start = t_end
                 
             ax[i][0].imshow(betai_matrix, aspect='auto')
-            # ax[i][0].set_yticks(list(range(betai_list[i].shape[1])))
-            ax[i][0].set_yticks(neuron_names)
+            ax[i][0].set_yticks(ticks = list(range(betai_list[i].shape[1])))
+            ax[i][0].set_yticklabels(neuron_names)
+            # ax[i][0].set_yticks(neuron_names)
             #set the 14 neuron names as yticks
             ax[i][0].set_title("Stimuli {} Neuron {} Beta Importance".format(stim_name[i], target), loc="left")
             
             ax[i][1].imshow(spike_sync_list[i], aspect='auto')
-            # ax[i][1].set_yticks(list(range(betai_list[i].shape[1])))
-            ax[i][0].set_yticks(neuron_names)
+            ax[i][1].set_yticks(ticks = list(range(betai_list[i].shape[1])))
+            ax[i][1].set_yticklabels(neuron_names)
+            # ax[i][1].set_yticks(neuron_names)
             ax[i][1].set_title("Stimuli {} Neuron {} SPIKE Sync".format(stim_name[i], target), loc="left")
             
     plt.tight_layout()
@@ -136,8 +138,9 @@ def plot_spatiotemporal_compare(time_list, betai_list, alphi_list, window_size, 
                 t_start = t_end
                 
             ax[i].imshow(sptatt_matrix, aspect='auto')
-            # ax[i].set_yticks(list(range(betai_list[i].shape[1])))
-            ax[i][0].set_yticks(neuron_names)
+            ax[i].set_yticks(ticks = list(range(betai_list[i].shape[1])))
+            ax[i].set_yticklabels(neuron_names)
+            # ax[i].set_yticks(neuron_names)
             ax[i].set_title("Stimuli {} Neuron {} Spatio Temporal Weights".format(stim_name[i], target), loc="left")
             
     plt.tight_layout()
@@ -164,13 +167,14 @@ def plot_betai_compare_rnn(betai_list, spike_sync_list, spike_length, time_resol
             betai_matrix[:,:] = np.expand_dims(betai_list[i],1)
                 
             ax[i][0].imshow(betai_matrix, aspect='auto')
-            # ax[i][0].set_yticks(list(range(betai_list[i].shape[0])))
-            ax[i][0].set_yticks(neuron_names)
+            ax[i][0].set_yticks(ticks = list(range(betai_list[i].shape[0])))
+            ax[i][0].set_yticklabels(neuron_names)
+            # ax[i][0].set_yticks(neuron_names)
             ax[i][0].set_title("Stimuli {} Neuron {} Beta Importance".format(stim_name[i], target), loc="left")
             
             ax[i][1].imshow(spike_sync_list[i], aspect='auto')
-            # ax[i][1].set_yticks(list(range(betai_list[i].shape[0])))
-            ax[i][0].set_yticks(neuron_names)
+            ax[i][1].set_yticks(ticks =list(range(betai_list[i].shape[0])))
+            ax[i][1].set_yticklabels(neuron_names)
             ax[i][1].set_title("Stimuli {} Neuron {} SPIKE Sync".format(stim_name[i], target), loc="left")
             
     plt.tight_layout()
