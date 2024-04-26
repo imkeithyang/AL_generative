@@ -8,7 +8,7 @@ from torch import distributions as d
 #from transformer import *
 
 
-def setup_att_flow(cfg, important_index,device,run,neuron_type, seed = 42):
+def setup_att_flow(cfg, important_index,device,run,neuron_type):
     """_summary_
     Args:
         cfg: Configuration
@@ -28,10 +28,9 @@ def setup_att_flow(cfg, important_index,device,run,neuron_type, seed = 42):
     data_params                    = cfg["data"]
     data_params["important_index"] = important_index
     # data_params["seed"]            = run
-    data_params["seed"]            = seed
+    # print(f"cfg_seed:{cfg["seed"]} with type {type(cfg["seed"])}, cfg_shuffle:{cfg["shuffle"]} with type {type(cfg["shuffle"])}")
     data_params["test_run"]        = run
     data_params["neuron_type"]     = neuron_type
-    data_params["shuffle"] = cfg["shuffle"]
     time_resolution                = data_params["time_resolution"]
     filler                         = data_params["filler"]
     window_size                    = data_params["window_size"]
@@ -45,7 +44,7 @@ def setup_att_flow(cfg, important_index,device,run,neuron_type, seed = 42):
     
     
     # load data
-    train_loader, val_loader, test_loader, val_data_spike, val_data_smooth, val_q, data_spike, data_smooth, q, stim_name, neurons = load_data_flow(**data_params)
+    train_loader, val_loader, test_loader, val_data_spike, val_data_smooth, val_q, data_spike, data_smooth, q, stim_name, neurons = load_data_flow(seed=cfg["seed"],shuffle=cfg["shuffle"],**data_params)
     if important_index is None:
         important_index = list(range(data_spike[0].shape[1]))
         

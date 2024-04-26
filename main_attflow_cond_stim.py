@@ -2,7 +2,7 @@ import yaml
 import torch
 import pickle
 import copy
-    
+
 import os
 from utils import *
 from flow_att_cond_stim import *
@@ -13,6 +13,8 @@ if args.device is None:
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 else: 
     device = torch.device(args.device)
+
+print("device:",device)
 
 yaml_filepath = args.filename
 with open(yaml_filepath, 'r') as f:
@@ -53,6 +55,10 @@ cfg["att_encoder"] = cfg_net["att_encoder"]
 cfg["flow_net"] = cfg_net["flow_net"]
 cfg["data"]["batch_size"] = cfg_net["batch_size"]
 cfg["data"]["use_component"] = ("use_component" in yaml_filepath)
+
+cfg["seed"] = int(args.seed)
+cfg["shuffle"] = bool(args.shuffle)
+
 n_runs = cfg['n_runs']
 n_tries = cfg['n_tries']
 
@@ -123,7 +129,7 @@ for target in target_list:
 
         #neuron_names manual setup
         # neuron_names = [S1U1,S2U1,S2U2,S3U1,S3U2,S4U1,S4U2,S4U3,S1U2,S1U3,S1U4,S3U3,S3U4,S4U4]
-
+        print(f"neurons: {neurons}")
         for stimuli, d_spike, d_smooth in zip(q, data_spike, data_smooth):
             spike_train = generate_spike_train_att_flow(encoder_best, flow_net_best,linear_transform_best, 
                                                         device,

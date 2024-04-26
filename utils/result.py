@@ -197,12 +197,14 @@ def plot_result_bar(crps_all,
     
 def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
                  '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-Mal', '0-Myr', '0-Ner', 
-                 '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous'], addtype=False):
+                 '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous'], addtype=False,\
+                    shuffle = False, panyu = None):
     with open(yaml_filepath, 'r') as f:
         cfg = yaml.load(f, yaml.SafeLoader)
         
     cfg["data"]["use_component"] = ("use_component" in yaml_filepath)
     cfg_temp = copy.deepcopy(cfg)
+    cfg_temp["shuffle"] = shuffle
     cfg_temp["data"]["target"] = cfg_temp["data"]["target"][0]
     n_runs = cfg_temp["n_runs"]
     time_scale = 10**cfg_temp["data"]["time_resolution"]
@@ -213,6 +215,8 @@ def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-
     else:
         neuron_type = None
     pred = json.load(open("unlabeled_pred.json",'r'))
+    if panyu != None:
+        cfg_temp["data"]["path"] = panyu
     _, neurons = read_moth(cfg_temp["data"]["path"], neuron_type=neuron_type, pred_label=pred, addtype=addtype)
     neurons.sort()
     target = cfg_temp["data"]["target"]

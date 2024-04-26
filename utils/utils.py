@@ -16,14 +16,6 @@ def get_parser():
         required=False,
     )
     parser.add_argument(
-        "-shuffle",
-        "--shuffle",
-        dest="shuffle",
-        default=False,
-        help = "whether shuffle",
-        required = False,
-    )
-    parser.add_argument(
         "-f",
         "--file",
         dest="filename",
@@ -41,10 +33,20 @@ def get_parser():
         required=False,
     )
     parser.add_argument(
+        "-seed",
+        "--seed",
+        dest="seed",
+        default=42,
+        help = "random seed",
+        required = False,
+    )
+    parser.add_argument(
         "-shuffle",
+        "--shuffle",
+        dest="shuffle",
         default=False,
-        help = "whether shuffle"
-        required=False
+        help = "whether shuffle",
+        required = False,
     )
     parser.add_argument(
         "-trainflow",
@@ -59,7 +61,12 @@ def get_parser():
 
 def format_directory(cfg, run, stimuli=None, neuron_type=None, neuron=None):
     exp = cfg["data"]["path"].split("/")[-1]
-    exp = "result/" + exp[0:-4]  + (neuron_type if neuron_type else "")
+
+    if cfg["shuffle"] == True:
+        exp = "result_shuffle/" + exp[0:-4]  + (neuron_type if neuron_type else "")
+    else:
+        exp = "result/" + exp[0:-4]  + (neuron_type if neuron_type else "")
+    
     if "use_component" in cfg["data"] and cfg["data"]["use_component"]:
         exp += "_use_comp"
     if "pre_stimuli" in cfg["data"]["path"]:
