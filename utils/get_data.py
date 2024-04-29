@@ -83,7 +83,8 @@ def split_window_per_neuron_flow(data_concat, data_concat_smooth, important_inde
     time_scale = 10**time_resolution
     if shuffle == True:
         np.random.seed(seed)
-        np.random.shuffle(data_concat[:,target_neuron])
+        # np.random.shuffle(data_concat[:,target_neuron])
+        data_concat[:,target_neuron] = np.random.permutation(data_concat[:,target_neuron])
     spike_time_unscaled = np.nonzero(data_concat[:,target_neuron])[0]
 
     # get inter-arrival time of spike
