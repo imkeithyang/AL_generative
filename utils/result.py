@@ -236,6 +236,9 @@ def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-
                                                                               neuron=n_temp)
         else:
                 savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, stimuli=0)
+        
+        print("savepath: ", savepath)
+        
         try:
             with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:
                     test_stats_run = pickle.load(f)
