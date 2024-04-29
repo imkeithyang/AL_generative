@@ -215,13 +215,8 @@ def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-
     else:
         neuron_type = None
     pred = json.load(open("unlabeled_pred.json",'r'))
-<<<<<<< HEAD
     if panyu != None:
         cfg_temp["data"]["path"] = panyu
-=======
-    if "011124" in cfg_temp["data"]["path"] or "12142022" in cfg_temp["data"]["path"]:
-        pred = None
->>>>>>> fc28f2a926e3308007912ebc583a01e271061bb3
     _, neurons = read_moth(cfg_temp["data"]["path"], neuron_type=neuron_type, pred_label=pred, addtype=addtype)
     neurons.sort()
     target = cfg_temp["data"]["target"]

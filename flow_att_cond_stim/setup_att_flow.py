@@ -48,7 +48,9 @@ def setup_att_flow(cfg, important_index,device,run,neuron_type,seed = 42):
     
     
     # load data
-    train_loader, val_loader, test_loader, val_data_spike, val_data_smooth, val_q, data_spike, data_smooth, q, stim_name, neurons = load_data_flow(seed=cfg["seed"],shuffle=cfg["shuffle"],**data_params)
+    # train_loader, val_loader, test_loader, val_data_spike, val_data_smooth, val_q, data_spike, data_smooth, q, stim_name, neurons = load_data_flow(seed=cfg["seed"],shuffle=cfg["shuffle"],**data_params)
+    train_loader, val_loader, test_loader, val_data_spike, val_data_smooth, val_q, data_spike, data_smooth, q, stim_name, neurons = load_data_flow(**data_params)
+
     if important_index is None:
         important_index = list(range(data_spike[0].shape[1]))
         
