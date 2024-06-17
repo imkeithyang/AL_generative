@@ -6,6 +6,7 @@ import copy
 import os
 from utils import *
 from flow_att_cond_stim import *
+import itertools
 from pathlib import Path
 
 args = get_parser().parse_args()
@@ -37,21 +38,7 @@ elif "LN" in yaml_filepath:
 else:
     neuron_type = None
 print(f"neuron type: {neuron_type}")
-# Different Attention/Flow Net structure from the unconditional attflow
-net_yamlfilepath = Path(yaml_filepath).parent.parent
-net_yamlfilepath = os.path.join(net_yamlfilepath, "sparse-attflow-net.yaml") if "sparse" in yaml_filepath else \
-    os.path.join(net_yamlfilepath, "attflow-net.yaml")
-    
-with open(net_yamlfilepath, 'r') as f:
-    cfg_net = yaml.load(f, yaml.SafeLoader)
 
-cfg["att_encoder"] = cfg_net["att_encoder"]    
-cfg["flow_net"] = cfg_net["flow_net"]
-cfg["data"]["batch_size"] = cfg_net["batch_size"]
-cfg["data"]["use_component"] = ("use_component" in yaml_filepath)
-
-cfg["seed"] = int(args.seed)
-cfg["shuffle"] = bool(args.shuffle)
 
 n_runs = cfg['n_runs']
 n_tries = cfg['n_tries']
@@ -68,8 +55,9 @@ for target in target_list:
     cfg_temp["data"]["target"] = target
     
     important_index = None
-    
-    for run in range(0,n_runs):
+
+    for run,seed in itertools.product(range(n_runs),range(91,100)):
+        # cfg_temp["seed"] = seed
         q_temp = []
         data_gen = []
         data_emp = []
@@ -90,8 +78,11 @@ for target in target_list:
                                                                             device, run=run,
                                                                             neuron_type=neuron_type)
         savepath, plot_savepath, net_savepath,exp = format_directory(cfg_temp, run, 
-                                                                     neuron_type=neuron_type,
-                                                                     neuron=neurons[cfg_temp['data']['target']])
+                                                                        neuron_type=neuron_type,
+                                                                        neuron=neurons[cfg_temp['data']['target']])
+
+        print(f"make directory: savepath: {savepath}")
+
         make_directory(exp, savepath, plot_savepath, net_savepath)
         
         initialized["paths"] = (savepath, plot_savepath, net_savepath)
@@ -221,22 +212,17 @@ for target in target_list:
                         gen_likelihood_list = gen_likelihood_list, stim_name=stim_name)
         
         spike_length = data_spike[0].shape[0]
-        #plot_betai_compare(time_list, betai_list, spike_sync_list, spike_length, time_resolution,
-        #           savepath, "test", q_temp, target, stim_name=stim_name,neuron_names=neurons)
-        #plot_spatiotemporal_compare(time_list, betai_list, alphai_list, window_size, 
-        #                            spike_length, time_resolution,
-        #           savepath, "test", q_temp, target, stim_name=stim_name,neuron_names=neurons)
-        
+
         test_stats = {"test_stats":test_stats,"crps_list":crps_list,
-                  "data_emp":np.array(data_emp), "data_gen":np.array(data_gen),
-                  "data_likelihood_list":data_likelihood_list,
-                  "gen_likelihood_list":gen_likelihood_list,
-                  "spike_train_list":spike_train_list, 
-                  "isi_distance_list":isi_distance_list, 
-                  "spike_distance_list":spike_distance_list,
-                  "time_list": time_list,
-                  "betai_list": betai_list,
-                  "alphai_list": alphai_list}
+                    "data_emp":np.array(data_emp), "data_gen":np.array(data_gen),
+                    "data_likelihood_list":data_likelihood_list,
+                    "gen_likelihood_list":gen_likelihood_list,
+                    "spike_train_list":spike_train_list, 
+                    "isi_distance_list":isi_distance_list, 
+                    "spike_distance_list":spike_distance_list,
+                    "time_list": time_list,
+                    "betai_list": betai_list,
+                    "alphai_list": alphai_list}
         
         with open(os.path.join(savepath,'test_stats.pkl'), 'wb') as f:
             pickle.dump(test_stats, f)
@@ -244,3 +230,4 @@ for target in target_list:
         with open(os.path.join(savepath,'saved_stats.pkl'), 'wb') as f:
             pickle.dump(all_stats, f)
             f.close()
+
