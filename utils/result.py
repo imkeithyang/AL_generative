@@ -198,15 +198,20 @@ def plot_result_bar(crps_all,
 def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-DatExt', '0-Far', '0-Ger', '0-Iso', '0-Lin', 
                  '0-M2', '0-M3', '0-M4', '0-M5', '0-M6', '0-Mal', '0-Myr', '0-Ner', 
                  '1-P3', '1-P4', '1-P5', '1-P9', '1-P9_Hund', '1-P9_Ten', '1-P9_TenThous'], addtype=False,\
-                    shuffle = False, panyu = None):
+                    shuffle = False, panyu = None, prefix = "", seed = None, n_runs = None):
     with open(yaml_filepath, 'r') as f:
         cfg = yaml.load(f, yaml.SafeLoader)
         
     cfg["data"]["use_component"] = ("use_component" in yaml_filepath)
     cfg_temp = copy.deepcopy(cfg)
     cfg_temp["shuffle"] = shuffle
+    cfg_temp["prefix"]= prefix
+    cfg_temp["seed"] = seed
     cfg_temp["data"]["target"] = cfg_temp["data"]["target"][0]
-    n_runs = cfg_temp["n_runs"]
+    
+    if n_runs is None:
+        n_runs = cfg_temp["n_runs"]
+
     time_scale = 10**cfg_temp["data"]["time_resolution"]
     if "PN" in yaml_filepath:
         neuron_type = "PN"
@@ -227,6 +232,7 @@ def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-
     stim_ensemble_stack = []
     post_stim_ensemble_stack = []
     for run in range(n_runs):
+        # print(f"run: {run}; n_runs: {n_runs}")
         n_temp = neurons[cfg_temp["data"]["target"]][:-2] if addtype else neurons[cfg_temp["data"]["target"]]
         if cfg_temp["data"]["target"] >= len(neurons):
             return
@@ -237,7 +243,7 @@ def analyze_betai(yaml_filepath, cond=False, q = ['0-Bea', '0-Bol', '0-Ctl', '1-
         else:
                 savepath, plot_savepath, net_savepath, exp = format_directory(cfg_temp, run, stimuli=0)
         
-        print("savepath: ", savepath)
+        # print("savepath: ", savepath)
         
         try:
             with open(os.path.join(savepath,'test_stats.pkl'), 'rb') as f:

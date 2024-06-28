@@ -40,33 +40,13 @@ def get_parser():
         help = "random seed",
         required = False,
     )
-    parser.add_argument(
-        "-shuffle",
-        "--shuffle",
-        dest="shuffle",
-        default=False,
-        help = "whether shuffle",
-        required = False,
-    )
-    parser.add_argument(
-        "-trainflow",
-        "--trainflow",
-        dest="trainflow",
-        default="1",
-        help="train flow",
-        required=False,
-    )
     return parser
 
 
 def format_directory(cfg, run, stimuli=None, neuron_type=None, neuron=None):
     exp = cfg["data"]["path"].split("/")[-1]
+    exp = f"result/" + exp[0:-4]  + (neuron_type if neuron_type else "")
 
-    if cfg["shuffle"] == True:
-        exp = "result_shuffle/" + exp[0:-4]  + (neuron_type if neuron_type else "")
-    else:
-        exp = "result/" + exp[0:-4]  + (neuron_type if neuron_type else "")
-    
     if "use_component" in cfg["data"] and cfg["data"]["use_component"]:
         exp += "_use_comp"
     if "pre_stimuli" in cfg["data"]["path"]:
@@ -99,7 +79,7 @@ def format_directory(cfg, run, stimuli=None, neuron_type=None, neuron=None):
                                 savepath, "by_stimuli/s_{}/net".format(stimuli)) if stimuli is not None else \
                    os.path.join("/scratch/pc266/AL_generative/", 
                                 savepath, "net")
-                                    
+    
     return savepath, plot_savepath, net_savepath, exp
 
 def make_directory(exp, savepath, plot_savepath, net_savepath):
