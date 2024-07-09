@@ -1,6 +1,6 @@
 # AL_generative
 
-Code Repository for our paper: **Neuron synchronization analyzed through spatial-temporal attention** ([bioarxiv]()). This repo contains the implementation of conditional normalizing flow with a spatial attention module that learns semi-interpretable weights to represent neural synchronization in *Manduca sexta*. 
+Code Repository for our paper: **Neuron synchronization analyzed through spatial-temporal attention** ([bioRxiv]()). This repo contains the implementation of conditional normalizing flow with a spatial attention module that learns semi-interpretable weights to represent neural synchronization in *Manduca sexta*. 
 
 ## Acknowledgment
 The normalizing flow implementation is adapted from [https://github.com/ikostrikov/pytorch-flows](https://github.com/ikostrikov/pytorch-flows).           
